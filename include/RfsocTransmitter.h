@@ -12,8 +12,6 @@
 #include <G3EventBuilder.h>
 #include <G3Logging.h>
 
-TO-DO: See if there are things from the smurf BaseTransmitter.h that we need
-
 class RfsocSampleFrameObject : public G3FrameObject{
 public:
     uint32_t seq;

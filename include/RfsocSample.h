@@ -29,13 +29,3 @@ private:
 G3_POINTERS(RfsocSample);
 
 #endif
-
-
-
-
-"""
-TO-DO: need to define packet fully in here instead of in separate SmurfPacket class (or just make an RfsocPacket class) - from SmurfPacket.h,
-it seems to have a lot of overhead for constructors and destructors but the main things are just buffers for the header and data (probably want the CopyCreator versions,
-not the ZeroCopyCreator versions - we don't have separate frame objects, so I'm just going to stuff each incoming packet into buffers using Ben's code).
-
-"""
