@@ -12,26 +12,29 @@
 #include <G3EventBuilder.h>
 #include <G3Logging.h>
 
-class RfsocSampleFrameObject : public G3FrameObject{
-public:
-    uint32_t seq;
-};
-
-void printRfsocPacket(RfsocPacketROPtr rp);
-
-class SmurfTransmitter : public sct::BaseTransmitter{
+class RfsocTransmitter{
 public:
 
-    SmurfTransmitter(G3EventBuilderPtr builder);
+    RfsocTransmitter(G3EventBuilderPtr builder);
 
-    ~SmurfTransmitter();
+    ~RfsocTransmitter();
+
+    int Start(); //Start listening thread 
+    int Stop(); // Stop listening thread
 
 
 private:
 
     G3EventBuilderPtr builder_;
 
-    void dataTransmit(RfsocPacketROPtr packet);
+    int SetupUDPSocket();                               //Build socket and bind to it in broadcast mode
+    void dataTransmit(struct RfsocPacket *rp);          //Wrap data packet into RfsocSample (since the builder expects a G3FrameObject instance) and pass to builder
+    static void Listen(RfsocTransmitter *transmitter);  //Capture packet, adjust for incomplete packet format, and pass to dataTransmit
+	std::thread listen_thread_;
+
+    bool success_;
+	volatile bool stop_listening_;
+    int sockfd;
 
     SET_LOGGER("RfsocTransmitter")
 };

@@ -19,6 +19,8 @@
 #include <G3Timesample.h>
 
 #include <pybindings.h>                //from spt3g
+#include <boost/pointer_cast.hpp>
+#include <boost/shared_ptr.hpp>
 #include <container_pybindings.h>      //from spt3g
 
 #include <chrono>
@@ -41,6 +43,35 @@ RfsocBuilder::~RfsocBuilder(){
     process_stash_thread_.join();
 }
 
+// Takes data from G3Pipeline queue and puts it into the write_stash
+// Automatically called by the G3Pipeline as new data is available
+void RfsocBuilder::ProcessNewData(){
+    G3FrameObjectConstPtr pkt;
+    G3TimeStamp ts;
+
+    {
+        std::lock_guard<std::mutex> lock(queue_lock_);
+        ts = queue_.front().first;
+        pkt = queue_.front().second;
+        queue_.pop_front();
+    }
+
+    RfsocSampleConstPtr data_pkt;
+
+    if (data_pkt = boost::dynamic_pointer_cast<const RfsocSample>(pkt)){
+        std::lock_guard<std::mutex> lock(write_stash_lock_);
+        if (queue_size_ < MAX_BUILDER_QUEUE_SIZE){
+            write_stash_.push_back(data_pkt);
+            queue_size_ += 1
+            //queue_size_ += data_pkt->sp->getHeader()->getNumberChannels(); //currently not working without full packet format
+        }
+        else{
+            dropped_frames_++;
+        }
+    }
+}
+
+// Calls FlushStash every agg_duration_ seconds
 void RfsocBuilder::ProcessStashThread(RfsocBuilder *builder){
     builder->running_ = true;
 
@@ -59,6 +90,7 @@ void RfsocBuilder::ProcessStashThread(RfsocBuilder *builder){
     }
 }
 
+// Processes write_stash samples into a single Frame 
 void RfsocBuilder::FlushStash(){
     // Swaps stashes
     std::lock_guard<std::mutex> read_lock(read_stash_lock_);
@@ -70,89 +102,80 @@ void RfsocBuilder::FlushStash(){
 
     if (read_stash_.empty()){
         G3FramePtr frame = boost::make_shared<G3Frame>();
-        frame->Put("sostream_flowcontrol", boost::make_shared<G3Int>(FC_ALIVE));
         frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
+        //There was a flow control bit here in SmurfBuilder
         FrameOut(frame);
         return;
     }
 
     auto start = read_stash_.begin();
     auto stop = read_stash_.begin();
-    //int nchans = (*start)->sp->getHeader()->getNumberChannels(); //Not implemented for RFSoC yet
     while(true){
         stop += 1;
         if (stop == read_stash_.end()){
             FrameOut(FrameFromSamples(start, stop));
             break;
         }
-       // Not implmented yet for RFSoC - handles if number of channels ever changes and writes a partial frame if so
-       /* int stop_nchans = (*stop)->sp->getHeader()->getNumberChannels();
-        *if (stop_nchans != nchans){
-        *    printf("NumChannels has changed from %d to %d!!", nchans, stop_nchans);
-        *    FrameOut(FrameFromSamples(start, stop));
-        *    start = stop;
-        *    nchans = stop_nchans;
-        *}
-        */
+        // There was more stuff here in SmurfBuilder to catch if the number of channels changed
     }
     read_stash_.clear();
 }
 
-//Needs changed!!
-//Takes data from G3Pipeline queue and puts it into the write_stash
-void SmurfBuilder::ProcessNewData(){
-    G3FrameObjectConstPtr pkt;
-    G3TimeStamp ts;
+// Builds a frame from whatever number of samples were in the queue
+G3FramePtr RfsocBuilder::FrameFromSamples(
+        std::deque<RfsocSampleConstPtr>::iterator start,
+        std::deque<RfsocSampleConstPtr>::iterator stop){
 
-    {
-        std::lock_guard<std::mutex> lock(queue_lock_);
-        ts = queue_.front().first;
-        pkt = queue_.front().second;
-        queue_.pop_front();
-    }
+    int nsamps = stop - start;
+    int nchans = 1; // Eventually will get this from packet; for now, just take one channel with no channel name
 
-    SmurfSampleConstPtr data_pkt; //Needs changed!!
-    //StatusSampleConstPtr status_pkt; // Don't have for RFSoC now
+    // Initialize detector timestreams
+    int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
+ 
+    int data_shape[2] = {nchans, nsamps};
+    auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
 
-    if (status_pkt = boost::dynamic_pointer_cast<const StatusSample>(pkt)){
+    G3VectorTime sample_times = G3VectorTime(nsamps);
 
-        G3FramePtr frame(boost::make_shared<G3Frame>(G3Frame::Wiring));
-        frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
-        frame->Put("status", boost::make_shared<G3String>(status_pkt->status_));
+    // Read data in to G3 Objects
+    int sample = 0;
+    for (auto it = start; it != stop; it++, sample++){
+        sample_times[sample] = (*it)->GetTime();
 
-        FrameOut(frame);
-    }
-
-    else if (data_pkt = boost::dynamic_pointer_cast<const SmurfSample>(pkt)){
-        std::lock_guard<std::mutex> lock(write_stash_lock_);
-        if (queue_size_ < MAX_BUILDER_QUEUE_SIZE){
-            write_stash_.push_back(data_pkt);
-            queue_size_ += data_pkt->sp->getHeader()->getNumberChannels();
+        for (int i = 0; i < nchans; i++){
+            // Just taking the I data point from a single resonator for now - will implement this for all
+            // channels when packet is properly defined so that we can skip the header
+            data_buffer[sample + i * nsamps] = (*it)->rp->buffer[16]
         }
-        else{
-            dropped_frames_++;
-        }
+
+        data_ts->times = sample_times;
+        // SetDataFromBuffer is from so3g/src/G3SuperTimestream.cxx
+        data_ts->SetDataFromBuffer((void*)data_buffer, 2, data_shape, NPY_INT32,
+            std::pair<int,int>(0, nsamps));
+
     }
-}
 
-G3FramePtr SmurfBuilder::FrameFromSamples(
-        std::deque<SmurfSampleConstPtr>::iterator start,
-        std::deque<SmurfSampleConstPtr>::iterator stop){
+    if (enable_compression_){
+        data_ts->Options(
+            enable_compression_, flac_level_, bz2_work_factor_, data_encode_algo_,
+            time_encode_algo_
+        );
+    }
+    else{
+        data_ts->Options(enable_compression_, -1, -1, -1, -1);
+    }
 
-    // Need to put packet info into arrays
-    // Need to fix boost stuff//
+    if (encode_timestreams_){
+        data_ts->Encode();
+    }
+
+    free(data_buffer);
 
     // Create and return G3Frame
     G3FramePtr frame = boost::make_shared<G3Frame>(G3Frame::Scan);
     frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
-    frame->Put("timing_paradigm",
-               boost::make_shared<G3String>(TimestampTypeStrings[timing_type])
-    );
-    frame->Put("data", data_ts);
-    frame->Put("tes_biases", tes_ts);
+    frame->Put("data", data_ts);  
     frame->Put("num_samples", boost::make_shared<G3Int>(nsamps));
-
-    frame->Put("primary", primary_ts);    
     
     return frame;
 }

@@ -52,7 +52,6 @@ private:
     //   - 3: FLAC + bzip
     // See So3G docs for more info.
     int data_encode_algo_;
-    int primary_encode_algo_;
     int time_encode_algo_;
     int enable_compression_;
     int bz2_work_factor_;
@@ -64,13 +63,7 @@ private:
     bool debug_;
     bool encode_timestreams_;
 
-    // Frame Write durations for monitoring
-    float compression_time_;
-    float frame_build_time_;
-
     std::thread process_stash_thread_;
-
-    std::vector<std::string> chan_names_;
 
     // Stores current output frame number
     uint32_t out_num_;
