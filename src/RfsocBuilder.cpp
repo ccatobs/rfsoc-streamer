@@ -62,7 +62,7 @@ void RfsocBuilder::ProcessNewData(){
         std::lock_guard<std::mutex> lock(write_stash_lock_);
         if (queue_size_ < MAX_BUILDER_QUEUE_SIZE){
             write_stash_.push_back(data_pkt);
-            queue_size_ += 1
+            queue_size_ += 1;
             //queue_size_ += data_pkt->sp->getHeader()->getNumberChannels(); //currently not working without full packet format
         }
         else{
@@ -145,7 +145,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         for (int i = 0; i < nchans; i++){
             // Just taking the I data point from a single resonator for now - will implement this for all
             // channels when packet is properly defined so that we can skip the header
-            data_buffer[sample + i * nsamps] = (*it)->rp->buffer[16]
+            data_buffer[sample + i * nsamps] = (*it)->rp->buffer[16];
         }
 
         data_ts->times = sample_times;

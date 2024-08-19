@@ -9,33 +9,31 @@
  
 #include "RfsocTransmitter.h"
 #include "RfsocSample.h"
-#include "RfsocBuilder.h"
+//#include "RfsocBuilder.h"
 #include <iostream>
 #include <algorithm>
 #include <iterator>
 #include <boost/algorithm/string.hpp>
 #include <inttypes.h>
 
+#include <bits/stdc++.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 //#define BROADCAST_IP	"192.168.3.40"	// The real transmitter
 #define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
 #define BROADCAST_PORT	4096
-#define BUFFER_SIZE     9000
-
-struct RfsocPacket {
-    unsigned char buffer[BUFFER_SIZE];
-} __attribute__((packed));
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
     builder_(builder), success_(false), stop_listening_(false)
 {
-	success_ = (SetupUDPSocket() != 0);
+    success_ = (SetupUDPSocket() != 0);
 }
 
 RfsocTransmitter::~RfsocTransmitter()
 {
     Stop();
-	close(sockfd);
+    close(sockfd);
 }
 
 void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
@@ -49,7 +47,7 @@ void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
 int RfsocTransmitter::SetupUDPSocket()
 {
     int sockfd; 
-	struct sockaddr_in rx_addr;
+    struct sockaddr_in rx_addr;
 
     // Create the socket file descriptor 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
@@ -76,33 +74,33 @@ int RfsocTransmitter::SetupUDPSocket()
 	exit(EXIT_FAILURE);
     }
 
-	return 0;
+    return 0;
 }
 
 int RfsocTransmitter::Start()
 {
-	stop_listening_ = false;
-	listen_thread_ = std::thread(Listen, this);
+    stop_listening_ = false;
+    listen_thread_ = std::thread(Listen, this);
 
-	return (0);
+    return (0);
 }
 
 int RfsocTransmitter::Stop()
 {
-	stop_listening_ = true;
-	listen_thread_.join();
+    stop_listening_ = true;
+    listen_thread_.join();
 
-	return (0);
+    return (0);
 }
 
 //Adapted to use Ben's code, but could go back to DfMuxCollectors's recvfrom
 void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
 {
-	struct RfsocPacket buf;
-	ssize_t len;
+    struct RfsocPacket buf;
+    ssize_t len;
 
-	while (!transmitter->stop_listening_) {
-		len = recv(transmitter->sockfd, &buf, sizeof(buf), 0);
+    while (!transmitter->stop_listening_) {
+        len = recv(transmitter->sockfd, &buf, sizeof(buf), 0);
         // Because the current packet is in an incomplete format, we need to roll
         // it by -1 to make sure it is byte-aligned and then make groups of
         // four bytes into ints. In Python, the code we are currently using to do
@@ -118,7 +116,8 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
         // The frombuffer equivalent is implemented in RfsocBuilder::FrameFromSamples() when it calls
         // so3g's SetDataFromBuffer, I believe
 
-        buf.buffer[num_bytes] = '\0'; 
-		transmitter->dataTransmit(&buf);
-	}
+        buf.buffer[len] = '\0'; 
+        transmitter->dataTransmit(&buf);
+    }
 }
+
