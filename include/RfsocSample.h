@@ -8,14 +8,14 @@
 #include <pybindings.h>
 #include <serialization.h>
 
-//#include <RfsocPacket.h> - placed all of the packet stuff as a struct in RfsocTransmitter.cpp for now
+#include <RfsocPacket.h>
 
-class RfsocSample : public G3FrameObject{
+class RfsocSample : public G3FrameObject {
 public:
-    RfoscSample(G3Time time, struct RfsocPacket rp) :
+    RfsocSample(G3Time time, struct RfsocPacket* rp) :
         G3FrameObject(), time_(time), rp(rp) {}
 
-    const struct RfsocPacket rp;
+    const struct RfsocPacket* rp;
 
     // Returns G3Time for packet. If time can be determined from timing system
     // this will use that and the GetTimingParadigm will return HighPrecision.
