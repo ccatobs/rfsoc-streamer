@@ -1,3 +1,5 @@
+#include <boost/shared_ptr.hpp>
+
 #include <core/pybindings.h>
 #include <core/G3.h>
 #include <core/G3Pipeline.h>
@@ -13,17 +15,17 @@
  * Modeled on sp3g_software/examples/cppexample.cxx
 */
 
-int main{
-
+int main()
+{
     // Initializing interpreter and releasing GIL
     // Borrowed from spt3g_software/examples/cppexample.cxx
     // May need changed for our usage, but will leave for now
     G3PythonInterpreter interp(false);
 
     G3Pipeline pipe;
-    RfsocBuilder builder;
-    RfsocTransmitter transmitter(builder);
-    transmitter.Start();
+    boost::shared_ptr<RfsocBuilder> builder = boost::make_shared<RfsocBuilder>();
+    RfsocTransmitter* transmitter = new RfsocTransmitter(builder);
+    transmitter->Start();
 
     pipe.Add(builder);
     pipe.Add(G3ModulePtr(new G3Writer("/data/test.g3")));
@@ -32,3 +34,4 @@ int main{
 
     return 0;
 }
+
