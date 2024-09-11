@@ -28,6 +28,7 @@ sudo apt install gcc g++
 sudo apt install make
 sudo apt-get install libboost-all-dev
 #
+export LD_LIBRARY_PATH=/home/ubuntu/streamer_test1/lib/python3.10/site-packages/so3g/spt3g_internal/:/home/ubuntu/streamer_test1/lib/python3.10/site-packages/so3g/
 
 make                               # this will make stream_min_example
 ./stream_min_example   # this will eventually segfault, but not before creating an empty test.g3 in the data directory
