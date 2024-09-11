@@ -15,6 +15,7 @@ mkdir ~/git
 cd ~/git
 git clone git@github.com:simonsobs/so3g.git
 #
+cd so3g
 pip install -r requirements.txt
 #
 pip install so3g
