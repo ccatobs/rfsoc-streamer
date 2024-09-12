@@ -20,7 +20,7 @@ int main()
     // Initializing interpreter and releasing GIL
     // Borrowed from spt3g_software/examples/cppexample.cxx
     // May need changed for our usage, but will leave for now
-    G3PythonInterpreter interp(false);
+    //G3PythonInterpreter interp(false);
 
     G3Pipeline pipe;
     boost::shared_ptr<RfsocBuilder> builder = boost::make_shared<RfsocBuilder>();
@@ -28,7 +28,7 @@ int main()
     transmitter->Start();
 
     pipe.Add(builder);
-    pipe.Add(G3ModulePtr(new G3Writer("/data/test.g3")));
+    pipe.Add(G3ModulePtr(new G3Writer("data/test.g3")));
 
     pipe.Run();
 
