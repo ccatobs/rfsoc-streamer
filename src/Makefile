@@ -9,10 +9,10 @@ CFLAGS = -g -pthread -I ../include -I /home/ubuntu/git/spt3g_software/core/inclu
 
 all: $(OBJ)
 
-RfsocBuilder.o: RfsocBuilder.cpp
+RfsocBuilder.o: RfsocBuilder.cxx
 	$(CC) -c -o $@ $(CFLAGS) $^
 
-RfsocTransmitter.o: RfsocTransmitter.cpp
+RfsocTransmitter.o: RfsocTransmitter.cxx
 	$(CC) -c -o $@ $(CFLAGS) $^
 
 clean:
