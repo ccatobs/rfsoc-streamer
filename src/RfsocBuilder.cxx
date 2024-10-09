@@ -19,6 +19,7 @@
 #include <G3Timesample.h>
 
 #include <pybindings.h>                //from spt3g
+//#include <boost/python.hpp>
 #include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <container_pybindings.h>      //from spt3g
@@ -147,13 +148,15 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
             // channels when packet is properly defined so that we can skip the header
             data_buffer[sample + i * nsamps] = (*it)->rp->buffer[16];
         }
-
-        data_ts->times = sample_times;
-        // SetDataFromBuffer is from so3g/src/G3SuperTimestream.cxx
-        data_ts->SetDataFromBuffer((void*)data_buffer, 2, data_shape, NPY_INT32,
-            std::pair<int,int>(0, nsamps));
-
     }
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+    data_ts->times = sample_times;
+    // SetDataFromBuffer is from so3g/src/G3SuperTimestream.cxx
+    data_ts->SetDataFromBuffer((void*)data_buffer, 2, data_shape, NPY_INT32,
+        std::pair<int,int>(0, nsamps));
 
     if (enable_compression_){
         data_ts->Options(
@@ -169,6 +172,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         data_ts->Encode();
     }
 
+    PyGILState_Release(gstate);
     free(data_buffer);
 
     // Create and return G3Frame
