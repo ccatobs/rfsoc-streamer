@@ -6,15 +6,12 @@ LIBS = ../src/RfsocTransmitter.o ../src/RfsocBuilder.o \
        -Wl,--copy-dt-needed-entries \
        -lspt3g-core -lso3g -lboost_system -lboost_python310 -pthread -lpython3.10 -lstdc++
 
-CFLAGS = -g -pthread \
-         -I ../include -I /home/ubuntu/git/spt3g_software/core/include/core -I /home/ubuntu/git/spt3g_software/core/include \
-       	 -I /home/ubuntu/git/so3g/include -I /usr/include/python3.10 \
-       	 -I /home/ubuntu/streamer_test1/lib/python3.10/site-packages/numpy/core/include/ \
-         -D_GLIBCXX_USE_CXX11_ABI=0
-         
-LFLAGS = -L /home/ubuntu/streamer_test1/lib/python3.10/site-packages/so3g/spt3g_internal/ \
-         -L /home/ubuntu/streamer_test1/lib/python3.10/site-packages/so3g \
-         -L /home/ubuntu/streamer_test1/lib/python3.10/site-packages/so3g.libs
+CFLAGS = --std=c++11 -g -pthread \
+        -I ../include -I /home/ubuntu/git/spt3g_software/core/include/core -I /home/ubuntu/git/spt3g_software/core/include \
+        -I /home/ubuntu/git/so3g/include -I /usr/include/python3.10 -I /home/ubuntu/streamer_test/lib/python3.10/site-packages/numpy/core/include/
+
+LFLAGS = -L /home/ubuntu/so3g/lib -L /home/ubuntu/so3g/so3g
+
 
 all: $(EXE)
 
