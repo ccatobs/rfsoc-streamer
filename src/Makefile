@@ -4,8 +4,7 @@ OBJ = RfsocBuilder.o RfsocTransmitter.o
 
 CFLAGS = -g -pthread -I ../include -I /home/ubuntu/git/spt3g_software/core/include/core -I /home/ubuntu/git/spt3g_software/core/include \
          -I /home/ubuntu/git/so3g/include -I /usr/include/python3.10 \
-         -I /home/ubuntu/streamer_test1/lib/python3.10/site-packages/numpy/core/include/ \
-         -D_GLIBCXX_USE_CXX11_ABI=0
+         -I /home/ubuntu/streamer_test/lib/python3.10/site-packages/numpy/core/include/ \
 
 all: $(OBJ)
 
