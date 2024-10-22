@@ -135,6 +135,10 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
  
     int data_shape[2] = {nchans, nsamps};
     auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
+    data_ts->names = G3VectorString();
+    for (int i = 0; i < nchans; i++){
+        data_ts->names.push_back("test_channel");
+    }
 
     G3VectorTime sample_times = G3VectorTime(nsamps);
 
