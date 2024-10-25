@@ -1,8 +1,12 @@
+#define PY_ARRAY_UNIQUE_SYMBOL Py_Array_API_SO3G
+
 #include <core/pybindings.h>
 #include <core/G3.h>
 #include <core/G3Pipeline.h>
 #include <core/G3Reader.h>
 #include <core/G3Writer.h>
+#include <so3g_numpy.h>
+#include <chrono>
 
 /*
  * Example of a small C++ program that is the equivalent of the
@@ -16,7 +20,7 @@ class Dump : public G3Module
 public:
 	void Process(G3FramePtr frame, std::deque<G3FramePtr> &out)
 	{
-		std::cout << *frame << std::endl;
+                std::cout << *frame << std::endl;
 		out.push_back(frame);
 	}
 };
@@ -32,7 +36,10 @@ main(int argc, const char **argv)
 	// Initialize the python interpreter, and release the GIL.
 	// Set the argument to true to instead hold the GIL.
 	// Comment this out to disable the interpreter.
-	G3PythonInterpreter interp(false);
+	G3PythonInterpreter interp(true);
+
+        import_array();
+        printf("PyArray_API: %p\n", PyArray_API);
 
 	G3Pipeline pipe;
 
@@ -43,7 +50,7 @@ main(int argc, const char **argv)
 		pipe.Add(G3ModulePtr(new G3Writer(argv[2])));
 
 	pipe.Run();
-	
+
 	return 0;
 }
 

@@ -33,8 +33,9 @@
 RfsocBuilder::RfsocBuilder() :
     G3EventBuilder(MAX_DATASOURCE_QUEUE_SIZE),
     out_num_(0), num_channels_(0),
-    agg_duration_(3), debug_(false), encode_timestreams_(false),
-    dropped_frames_(0)
+    agg_duration_(3), debug_(false), encode_timestreams_(true),
+    dropped_frames_(0), enable_compression_(1), data_encode_algo_(3),
+    time_encode_algo_(2), bz2_work_factor_(1), flac_level_(3)
 {
     process_stash_thread_ = std::thread(ProcessStashThread, this);
 }
@@ -132,7 +133,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
 
     // Initialize detector timestreams
     int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
- 
+
     int data_shape[2] = {nchans, nsamps};
     auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
     data_ts->names = G3VectorString();
@@ -182,9 +183,9 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     // Create and return G3Frame
     G3FramePtr frame = boost::make_shared<G3Frame>(G3Frame::Scan);
     frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
-    frame->Put("data", data_ts);  
+    frame->Put("data", data_ts);
     frame->Put("num_samples", boost::make_shared<G3Int>(nsamps));
-    
+
     return frame;
 }
 

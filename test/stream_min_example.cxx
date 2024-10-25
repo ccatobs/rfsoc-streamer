@@ -10,9 +10,6 @@
 #include <RfsocTransmitter.h>
 #include <so3g_numpy.h>
 
-
-// Need to include spt3g_software? So3g?
-
 /* Placeholder file for script that will start a G3Pipeline
  * to catch packets with the minimal working example of
  * the rfsoc-streamer.
@@ -35,7 +32,7 @@ int main()
     transmitter->Start();
 
     pipe.Add(builder);
-    pipe.Add(G3ModulePtr(new G3Writer("data/test.g3")));
+    pipe.Add(G3ModulePtr(new G3Writer("${HOME}/data/test.g3")));
 
     pipe.Run();
 

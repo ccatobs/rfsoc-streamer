@@ -6,7 +6,7 @@
  * Modeled extensively off of the SO smurf-streamer's SmurfTransmitter.cpp
  * but with added elements from spt3g-software's DfMuxCollector.cxx
  */
- 
+
 #include "RfsocTransmitter.h"
 #include "RfsocSample.h"
 //#include "RfsocBuilder.h"
@@ -20,8 +20,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-//#define BROADCAST_IP	"192.168.3.40"	// The real transmitter
-#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
+#define BROADCAST_IP	"192.168.3.40"	// The real transmitter
+//#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
 #define BROADCAST_PORT	4096
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
@@ -39,21 +39,20 @@ RfsocTransmitter::~RfsocTransmitter()
 void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
 
     G3Time ts = G3Time::Now();
-    RfsocSamplePtr rfsoc_sample(new RfsocSample(ts, rp)); 
+    RfsocSamplePtr rfsoc_sample(new RfsocSample(ts, rp));
     builder_->AsyncDatum(ts.time, rfsoc_sample);
 }
 
-// borrowing from Ben's code - how does it get the IP address? Or is it just listening for anything on network?
+// borrowing from Ben's code - just listening for anything on network that arrives at BROADCAST_IP
 int RfsocTransmitter::SetupUDPSocket()
 {
-    int sockfd; 
     struct sockaddr_in rx_addr;
 
-    // Create the socket file descriptor 
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
-        perror("socket creation failed"); 
-        exit(EXIT_FAILURE); 
-    } 
+    // Create the socket file descriptor
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
 
     // Use the socket in "broadcast" mode
     int enabled = 1;
@@ -62,10 +61,10 @@ int RfsocTransmitter::SetupUDPSocket()
         exit(EXIT_FAILURE);
     }
 
-    // Specify the receiver address 
-    memset(&rx_addr, 0, sizeof(rx_addr)); 
-    rx_addr.sin_family      = AF_INET; 
-    rx_addr.sin_port        = htons(BROADCAST_PORT); 
+    // Specify the receiver address
+    memset(&rx_addr, 0, sizeof(rx_addr));
+    rx_addr.sin_family      = AF_INET;
+    rx_addr.sin_port        = htons(BROADCAST_PORT);
     rx_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Bind to the receiver socket
@@ -116,7 +115,7 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
         // The frombuffer equivalent is implemented in RfsocBuilder::FrameFromSamples() when it calls
         // so3g's SetDataFromBuffer, I believe
 
-        buf.buffer[len] = '\0'; 
+        buf.buffer[len] = '\0';
         transmitter->dataTransmit(&buf);
     }
 }
