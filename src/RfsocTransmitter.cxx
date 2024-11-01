@@ -22,6 +22,7 @@
 
 #define BROADCAST_IP	"192.168.3.40"	// The real transmitter
 //#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
+#define CONNECT_IP      "192.168.3.52"  // The drone IP address from which to receive packets
 #define BROADCAST_PORT	4096
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
@@ -47,6 +48,7 @@ void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
 int RfsocTransmitter::SetupUDPSocket()
 {
     struct sockaddr_in rx_addr;
+    struct sockaddr_in serv_addr;
 
     // Create the socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -71,6 +73,21 @@ int RfsocTransmitter::SetupUDPSocket()
     if (bind(sockfd, (const sockaddr*)&rx_addr, sizeof(rx_addr)) < 0) {
 	perror("bind failed");
 	exit(EXIT_FAILURE);
+    }
+
+    // Specify the drone/server address
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family    = AF_INET;
+    serv_addr.sin_port      = htons(BROADCAST_PORT);
+    // Convert server IP to binary
+    if (inet_pton(AF_INET, CONNECT_IP, &serv_addr.sin_addr) < 0) {
+        perror("Invalid connect IP address");
+        exit(EXIT_FAILURE);
+    }
+    // Connect to drone/server address to get only packets from here
+    if (connect(sockfd, (const sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("Connect failed");
+        exit(EXIT_FAILURE);
     }
 
     return 0;
