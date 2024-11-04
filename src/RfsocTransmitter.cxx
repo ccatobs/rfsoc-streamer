@@ -117,22 +117,6 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
 
     while (!transmitter->stop_listening_) {
         len = recv(transmitter->sockfd, &buf, sizeof(buf), 0);
-        // Because the current packet is in an incomplete format, we need to roll
-        // it by -1 to make sure it is byte-aligned and then make groups of
-        // four bytes into ints. In Python, the code we are currently using to do
-        // this is:
-        //     data = sock.recv(9000)
-        //     data = bytearray(data)
-        //     data = np.roll(data, -1)
-        //     return np.frombuffer(data, dtype="<i").astype("float")
-        // We need to implement an equivalent here until we get the updated firmware
-        // in which these issues are fixed. I believe the char array is already an equivalent of bytearray.
-        std::rotate(std::begin(buf.buffer), std::begin(buf.buffer) + 1, std::end(buf.buffer)); //rotating one to the left
-
-        // The frombuffer equivalent is implemented in RfsocBuilder::FrameFromSamples() when it calls
-        // so3g's SetDataFromBuffer, I believe
-
-        buf.buffer[len] = '\0';
         transmitter->dataTransmit(&buf);
     }
 }

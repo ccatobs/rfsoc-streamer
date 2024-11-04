@@ -129,7 +129,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         std::deque<RfsocSampleConstPtr>::iterator stop){
 
     int nsamps = stop - start;
-    int nchans = 1; // Eventually will get this from packet; for now, just take one channel with no channel name
+    int nchans = 2044; // Eventually would like to get only the active channels from packet, but there are 2*1022 total
+    int nres = nchans / 2; // Total number of resonators for generating names
 
     // Initialize detector timestreams
     int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
@@ -137,8 +138,12 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     int data_shape[2] = {nchans, nsamps};
     auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
     data_ts->names = G3VectorString();
-    for (int i = 0; i < nchans; i++){
-        data_ts->names.push_back("test_channel");
+    char name[16];
+    for (int i = 0; i < nres; i++){
+        snprintf(name, sizeof(name), "r%04d_I", i);
+        data_ts->names.push_back(name);
+        snprintf(name, sizeof(name), "r%04d_Q", i);
+        data_ts->names.push_back();
     }
 
     G3VectorTime sample_times = G3VectorTime(nsamps);
@@ -149,9 +154,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         sample_times[sample] = (*it)->GetTime();
 
         for (int i = 0; i < nchans; i++){
-            // Just taking the I data point from a single resonator for now - will implement this for all
-            // channels when packet is properly defined so that we can skip the header
-            data_buffer[sample + i * nsamps] = (*it)->rp->buffer[16];
+            // Data should already by stored as int32 in data vector in the packet
+            data_buffer[sample + i * nsamps] = (*it)->rp->data[i];
         }
     }
 
