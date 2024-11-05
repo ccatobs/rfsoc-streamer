@@ -143,7 +143,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         snprintf(name, sizeof(name), "r%04d_I", i);
         data_ts->names.push_back(name);
         snprintf(name, sizeof(name), "r%04d_Q", i);
-        data_ts->names.push_back();
+        data_ts->names.push_back(name);
     }
 
     G3VectorTime sample_times = G3VectorTime(nsamps);
