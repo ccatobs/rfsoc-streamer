@@ -8,7 +8,7 @@ struct RfsocPacket {
     //Trying immediately casting packets to ints for easier access in RfsocBuilder
     int32_t data[NUMBER_CHANNELS]; // is this unsigned or signed?
     unsigned char unused_buffer[6];
-    uint32_t packet_info;
+    uint8_t packet_info[4]; // four bytes of flags, one byte per drone
     uint32_t packet_count;
     unsigned char raw_ptp_timestamp[12];
 } __attribute__((packed));
