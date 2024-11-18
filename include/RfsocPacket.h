@@ -2,7 +2,7 @@
 #define RFSOCPACKET_H
 
 #define NUMBER_CHANNELS 2048 // Treating I and Q as separate channels
-// 8212 total bytes in packet - 1024*8 + 20
+// 8212 total bytes in packet - 1024*2*8 + 20
 
 struct RfsocPacket {
     //Trying immediately casting packets to ints for easier access in RfsocBuilder

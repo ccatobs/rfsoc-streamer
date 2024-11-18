@@ -64,7 +64,7 @@ void RfsocBuilder::ProcessNewData(){
         std::lock_guard<std::mutex> lock(write_stash_lock_);
         if (queue_size_ < MAX_BUILDER_QUEUE_SIZE){
             write_stash_.push_back(data_pkt);
-            queue_size_ += 1;
+            queue_size_ += 2048;
             //queue_size_ += data_pkt->sp->getHeader()->getNumberChannels(); //currently not working without full packet format
         }
         else{
