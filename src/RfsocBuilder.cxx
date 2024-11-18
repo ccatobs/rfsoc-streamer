@@ -129,7 +129,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         std::deque<RfsocSampleConstPtr>::iterator stop){
 
     int nsamps = stop - start;
-    int nchans = 2044; // Eventually would like to get only the active channels from packet, but there are 2*1022 total
+    int nchans = 2048; // Eventually would like to get only the active channels from packet, but there are 2*1024 total
     int nres = nchans / 2; // Total number of resonators for generating names
 
     // Initialize detector timestreams
