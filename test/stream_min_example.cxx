@@ -1,6 +1,6 @@
 #define PY_ARRAY_UNIQUE_SYMBOL Py_Array_API_SO3G
 
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
 
 #include <core/pybindings.h>
 #include <core/G3.h>
@@ -27,7 +27,7 @@ int main()
     printf("PyArray_API: %p\n", PyArray_API);
 
     G3Pipeline pipe;
-    boost::shared_ptr<RfsocBuilder> builder = boost::make_shared<RfsocBuilder>();
+    std::shared_ptr<RfsocBuilder> builder = std::make_shared<RfsocBuilder>();
     RfsocTransmitter* transmitter = new RfsocTransmitter(builder);
     transmitter->Start();
 

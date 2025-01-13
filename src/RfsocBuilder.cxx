@@ -20,8 +20,9 @@
 
 #include <pybindings.h>                //from spt3g
 //#include <boost/python.hpp>
-#include <boost/pointer_cast.hpp>
-#include <boost/shared_ptr.hpp>
+//#include <boost/pointer_cast.hpp>
+//#include <boost/shared_ptr.hpp>
+//#include <boost/make_shared.hpp>
 #include <container_pybindings.h>      //from spt3g
 
 #include <chrono>
@@ -60,7 +61,7 @@ void RfsocBuilder::ProcessNewData(){
 
     RfsocSampleConstPtr data_pkt;
 
-    if (data_pkt = boost::dynamic_pointer_cast<const RfsocSample>(pkt)){
+    if (data_pkt = std::dynamic_pointer_cast<const RfsocSample>(pkt)){
         std::lock_guard<std::mutex> lock(write_stash_lock_);
         if (queue_size_ < MAX_BUILDER_QUEUE_SIZE){
             write_stash_.push_back(data_pkt);
@@ -103,8 +104,8 @@ void RfsocBuilder::FlushStash(){
     }
 
     if (read_stash_.empty()){
-        G3FramePtr frame = boost::make_shared<G3Frame>();
-        frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
+        G3FramePtr frame = std::make_shared<G3Frame>();
+        frame->Put("time", std::make_shared<G3Time>(G3Time::Now()));
         //There was a flow control bit here in SmurfBuilder
         FrameOut(frame);
         return;
@@ -187,10 +188,10 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     free(data_buffer);
 
     // Create and return G3Frame
-    G3FramePtr frame = boost::make_shared<G3Frame>(G3Frame::Scan);
-    frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
+    G3FramePtr frame = std::make_shared<G3Frame>(G3Frame::Scan);
+    frame->Put("time", std::make_shared<G3Time>(G3Time::Now()));
     frame->Put("data", data_ts);
-    frame->Put("num_samples", boost::make_shared<G3Int>(nsamps));
+    frame->Put("num_samples", std::make_shared<G3Int>(nsamps));
 
     return frame;
 }

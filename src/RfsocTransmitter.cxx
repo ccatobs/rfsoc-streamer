@@ -13,17 +13,18 @@
 #include <iostream>
 #include <algorithm>
 #include <iterator>
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 #include <inttypes.h>
 
 #include <bits/stdc++.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define BROADCAST_IP	"192.168.3.40"	// The real transmitter
+#define RECEIVE_IP	"192.168.3.40"	// The real transmitter
 //#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
-#define CONNECT_IP      "192.168.3.50"  // The drone IP address from which to receive packets
-#define BROADCAST_PORT	4096
+#define CONNECT_IP      "192.168.3.58"  // The drone IP address from which to receive packets
+#define RECEIVE_PORT	4096
+#define CONNECT_PORT    4096
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
     builder_(builder), success_(false), stop_listening_(false)
@@ -69,7 +70,7 @@ int RfsocTransmitter::SetupUDPSocket()
     // Specify the receiver address
     memset(&rx_addr, 0, sizeof(rx_addr));
     rx_addr.sin_family      = AF_INET;
-    rx_addr.sin_port        = htons(BROADCAST_PORT);
+    rx_addr.sin_port        = htons(RECEIVE_PORT);
     rx_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Bind to the receiver socket
@@ -81,7 +82,7 @@ int RfsocTransmitter::SetupUDPSocket()
     // Specify the drone/server address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family    = AF_INET;
-    serv_addr.sin_port      = htons(BROADCAST_PORT);
+    serv_addr.sin_port      = htons(CONNECT_PORT);
     // Convert server IP to binary
     if (inet_pton(AF_INET, CONNECT_IP, &serv_addr.sin_addr) < 0) {
         perror("Invalid connect IP address");
