@@ -11,6 +11,7 @@
 #include <G3NetworkSender.h>
 #include <G3EventBuilder.h>
 #include <G3Logging.h>
+#include <RfsocPacket.h>
 
 class RfsocTransmitter{
 public:
@@ -28,7 +29,10 @@ private:
     G3EventBuilderPtr builder_;
 
     int SetupUDPSocket();                               //Build socket and bind to it in broadcast mode
-    void dataTransmit(struct RfsocPacket *rp);          //Wrap data packet into RfsocSample (since the builder expects a G3FrameObject instance) and pass to builder
+    // original code with RfsocPacket *rp
+    //void dataTransmit(struct RfsocPacket *rp);          //Wrap data packet into RfsocSample (since the builder expects a G3FrameObject instance) and pass to builder
+    // new code with RfsocPacketPtr
+    void dataTransmit(RfsocPacketPtr rp);               //Wrap data packet into RfsocSample
     static void Listen(RfsocTransmitter *transmitter);  //Capture packet, adjust for incomplete packet format, and pass to dataTransmit
 	std::thread listen_thread_;
 

@@ -155,6 +155,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
 
         for (int i = 0; i < nchans; i++){
             // Data should already by stored as int32 in data vector in the packet
+            //const int32_t *per_data = (*it)->rp_->data;
+            //data_buffer[sample + i * nsamps] = per_data[i];
             data_buffer[sample + i * nsamps] = (*it)->rp->data[i];
         }
     }

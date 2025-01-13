@@ -32,7 +32,7 @@ int main()
     transmitter->Start();
 
     pipe.Add(builder);
-    pipe.Add(G3ModulePtr(new G3Writer("/home/streamer/data/test_connect.g3")));
+    pipe.Add(G3ModulePtr(new G3Writer("/home/streamer/data/test.g3")));
 
     pipe.Run();
 

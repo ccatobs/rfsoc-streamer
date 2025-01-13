@@ -13,4 +13,7 @@ struct RfsocPacket {
     unsigned char raw_ptp_timestamp[12];
 } __attribute__((packed));
 
+typedef std::shared_ptr<RfsocPacket> RfsocPacketPtr;
+typedef std::shared_ptr<const RfsocPacket> RfsocPacketConstPtr;
+
 #endif

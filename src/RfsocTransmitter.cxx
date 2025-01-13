@@ -22,7 +22,7 @@
 
 #define BROADCAST_IP	"192.168.3.40"	// The real transmitter
 //#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
-#define CONNECT_IP      "192.168.3.52"  // The drone IP address from which to receive packets
+#define CONNECT_IP      "192.168.3.50"  // The drone IP address from which to receive packets
 #define BROADCAST_PORT	4096
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
@@ -37,7 +37,10 @@ RfsocTransmitter::~RfsocTransmitter()
     close(sockfd);
 }
 
-void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
+// original code with struct RfsocPacket *rp
+//void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
+// new code with RfsocPacketPtr
+void RfsocTransmitter::dataTransmit(RfsocPacketPtr rp){
 
     G3Time ts = G3Time::Now();
     RfsocSamplePtr rfsoc_sample(new RfsocSample(ts, rp));
@@ -112,12 +115,16 @@ int RfsocTransmitter::Stop()
 //Adapted to use Ben's code, but could go back to DfMuxCollectors's recvfrom
 void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
 {
-    struct RfsocPacket buf;
+    // Zach's original code
+    //struct RfsocPacket buf;
+    // attempting to make buf a shared_ptr -- using new typedef in RfsocPacket.h
+    RfsocPacketPtr buf = std::make_shared<RfsocPacket>();
     ssize_t len;
 
     while (!transmitter->stop_listening_) {
         len = recv(transmitter->sockfd, &buf, sizeof(buf), 0);
-        transmitter->dataTransmit(&buf);
+        //transmitter->dataTransmit(&buf);
+        transmitter->dataTransmit(buf);
     }
 }
 
