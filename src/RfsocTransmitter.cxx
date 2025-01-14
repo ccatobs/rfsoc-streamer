@@ -67,6 +67,13 @@ int RfsocTransmitter::SetupUDPSocket()
         exit(EXIT_FAILURE);
     }
 
+    // Allow multiple listeners on same receive port
+    int enable_multi = 1;
+    if ((setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable_multi, sizeof(enable_multi))) < 0) {
+        perror("socket reuseaddr option failed");
+        exit(EXIT_FAILURE);
+    }
+
     // Specify the receiver address
     memset(&rx_addr, 0, sizeof(rx_addr));
     rx_addr.sin_family      = AF_INET;
@@ -123,7 +130,7 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
     ssize_t len;
 
     while (!transmitter->stop_listening_) {
-        len = recv(transmitter->sockfd, &buf, sizeof(buf), 0);
+        len = recv(transmitter->sockfd, buf.get(), 9000, 0);
         //transmitter->dataTransmit(&buf);
         transmitter->dataTransmit(buf);
     }
