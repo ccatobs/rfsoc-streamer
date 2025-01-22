@@ -38,8 +38,7 @@ main(int argc, const char **argv)
 	// Comment this out to disable the interpreter.
 	G3PythonInterpreter interp(true);
 
-        import_array();
-        printf("PyArray_API: %p\n", PyArray_API);
+        import_array1(0);
 
 	G3Pipeline pipe;
 

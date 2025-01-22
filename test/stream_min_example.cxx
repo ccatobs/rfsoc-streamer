@@ -23,8 +23,8 @@ int main()
     // May need changed for our usage, but will leave for now
     G3PythonInterpreter interp(true);
 
-    import_array();
-    printf("PyArray_API: %p\n", PyArray_API);
+    // Initializing PyArray_API needed for numpy integration
+    import_array1(0);
 
     G3Pipeline pipe;
     std::shared_ptr<RfsocBuilder> builder = std::make_shared<RfsocBuilder>();

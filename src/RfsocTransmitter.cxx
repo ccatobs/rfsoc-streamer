@@ -13,7 +13,6 @@
 #include <iostream>
 #include <algorithm>
 #include <iterator>
-//#include <boost/algorithm/string.hpp>
 #include <inttypes.h>
 
 #include <bits/stdc++.h>
@@ -22,7 +21,7 @@
 
 #define RECEIVE_IP	"192.168.3.40"	// The real transmitter
 //#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
-#define CONNECT_IP      "192.168.3.58"  // The drone IP address from which to receive packets
+#define CONNECT_IP      "192.168.3.56"  // The drone IP address from which to receive packets
 #define RECEIVE_PORT	4096
 #define CONNECT_PORT    4096
 
@@ -38,9 +37,6 @@ RfsocTransmitter::~RfsocTransmitter()
     close(sockfd);
 }
 
-// original code with struct RfsocPacket *rp
-//void RfsocTransmitter::dataTransmit(struct RfsocPacket *rp){
-// new code with RfsocPacketPtr
 void RfsocTransmitter::dataTransmit(RfsocPacketPtr rp){
 
     G3Time ts = G3Time::Now();
@@ -123,15 +119,11 @@ int RfsocTransmitter::Stop()
 //Adapted to use Ben's code, but could go back to DfMuxCollectors's recvfrom
 void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
 {
-    // Zach's original code
-    //struct RfsocPacket buf;
-    // attempting to make buf a shared_ptr -- using new typedef in RfsocPacket.h
-    RfsocPacketPtr buf = std::make_shared<RfsocPacket>();
     ssize_t len;
 
     while (!transmitter->stop_listening_) {
-        len = recv(transmitter->sockfd, buf.get(), 9000, 0);
-        //transmitter->dataTransmit(&buf);
+        RfsocPacketPtr buf = std::make_shared<RfsocPacket>();
+        len = recv(transmitter->sockfd, buf.get(), sizeof(RfsocPacket), 0);
         transmitter->dataTransmit(buf);
     }
 }
