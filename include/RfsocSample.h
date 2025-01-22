@@ -12,10 +12,11 @@
 
 class RfsocSample : public G3FrameObject {
 public:
-    RfsocSample(G3Time time, struct RfsocPacket* rp) :
+    RfsocSample(G3Time time, RfsocPacketPtr rp) :
         G3FrameObject(), time_(time), rp(rp) {}
 
-    const struct RfsocPacket* rp;
+    //const struct RfsocPacket* rp;
+    RfsocPacketPtr rp;
 
     // Returns G3Time for packet. If time can be determined from timing system
     // this will use that and the GetTimingParadigm will return HighPrecision.

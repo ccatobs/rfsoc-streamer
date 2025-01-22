@@ -20,8 +20,9 @@
 
 #include <pybindings.h>                //from spt3g
 //#include <boost/python.hpp>
-#include <boost/pointer_cast.hpp>
-#include <boost/shared_ptr.hpp>
+//#include <boost/pointer_cast.hpp>
+//#include <boost/shared_ptr.hpp>
+//#include <boost/make_shared.hpp>
 #include <container_pybindings.h>      //from spt3g
 
 #include <chrono>
@@ -60,11 +61,11 @@ void RfsocBuilder::ProcessNewData(){
 
     RfsocSampleConstPtr data_pkt;
 
-    if (data_pkt = boost::dynamic_pointer_cast<const RfsocSample>(pkt)){
+    if (data_pkt = std::dynamic_pointer_cast<const RfsocSample>(pkt)){
         std::lock_guard<std::mutex> lock(write_stash_lock_);
         if (queue_size_ < MAX_BUILDER_QUEUE_SIZE){
             write_stash_.push_back(data_pkt);
-            queue_size_ += 1;
+            queue_size_ += 2048;
             //queue_size_ += data_pkt->sp->getHeader()->getNumberChannels(); //currently not working without full packet format
         }
         else{
@@ -103,8 +104,8 @@ void RfsocBuilder::FlushStash(){
     }
 
     if (read_stash_.empty()){
-        G3FramePtr frame = boost::make_shared<G3Frame>();
-        frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
+        G3FramePtr frame = std::make_shared<G3Frame>();
+        frame->Put("time", std::make_shared<G3Time>(G3Time::Now()));
         //There was a flow control bit here in SmurfBuilder
         FrameOut(frame);
         return;
@@ -129,7 +130,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         std::deque<RfsocSampleConstPtr>::iterator stop){
 
     int nsamps = stop - start;
-    int nchans = 1; // Eventually will get this from packet; for now, just take one channel with no channel name
+    int nchans = 2048; // Eventually would like to get only the active channels from packet, but there are 2*1024 total
+    int nres = nchans / 2; // Total number of resonators for generating names
 
     // Initialize detector timestreams
     int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
@@ -137,8 +139,12 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     int data_shape[2] = {nchans, nsamps};
     auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
     data_ts->names = G3VectorString();
-    for (int i = 0; i < nchans; i++){
-        data_ts->names.push_back("test_channel");
+    char name[16];
+    for (int i = 0; i < nres; i++){
+        snprintf(name, sizeof(name), "r%04d_I", i);
+        data_ts->names.push_back(name);
+        snprintf(name, sizeof(name), "r%04d_Q", i);
+        data_ts->names.push_back(name);
     }
 
     G3VectorTime sample_times = G3VectorTime(nsamps);
@@ -149,9 +155,10 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         sample_times[sample] = (*it)->GetTime();
 
         for (int i = 0; i < nchans; i++){
-            // Just taking the I data point from a single resonator for now - will implement this for all
-            // channels when packet is properly defined so that we can skip the header
-            data_buffer[sample + i * nsamps] = (*it)->rp->buffer[16];
+            // Data should already by stored as int32 in data vector in the packet
+            //const int32_t *per_data = (*it)->rp_->data;
+            //data_buffer[sample + i * nsamps] = per_data[i];
+            data_buffer[sample + i * nsamps] = (*it)->rp->data[i];
         }
     }
 
@@ -181,10 +188,10 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     free(data_buffer);
 
     // Create and return G3Frame
-    G3FramePtr frame = boost::make_shared<G3Frame>(G3Frame::Scan);
-    frame->Put("time", boost::make_shared<G3Time>(G3Time::Now()));
+    G3FramePtr frame = std::make_shared<G3Frame>(G3Frame::Scan);
+    frame->Put("time", std::make_shared<G3Time>(G3Time::Now()));
     frame->Put("data", data_ts);
-    frame->Put("num_samples", boost::make_shared<G3Int>(nsamps));
+    frame->Put("num_samples", std::make_shared<G3Int>(nsamps));
 
     return frame;
 }

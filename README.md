@@ -13,6 +13,7 @@ sudo apt install python3-dev
 sudo apt-get install libboost-all-dev
 sudo apt install python3.10-venv 
 sudo apt install libopenblas-openmp-dev libflac-dev bzip2 libbz2-dev 
+sudo apt install libgsl-dev
 #
 python3 -m venv streamer_test
 source streamer_test/bin/activate
