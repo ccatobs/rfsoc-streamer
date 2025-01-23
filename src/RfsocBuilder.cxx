@@ -124,6 +124,12 @@ void RfsocBuilder::FlushStash(){
     read_stash_.clear();
 }
 
+double RfsocBuilder::get_utc_from_ptp_timestamp(unsigned char d[], double offset)
+{
+  // offset from TAI to UTC is currently -37 seconds (from Adrian Sinclair 2024 python code)
+  return int((d[-3] << 18) | (d[-2] >> 14)) + int((((d[-2] & 0x00003FFF) << 16) | (d[-1] >> 16))) * 1e-9 + offset;
+}
+
 // Builds a frame from whatever number of samples were in the queue
 G3FramePtr RfsocBuilder::FrameFromSamples(
         std::deque<RfsocSampleConstPtr>::iterator start,
@@ -187,11 +193,22 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     PyGILState_Release(gstate);
     free(data_buffer);
 
+    uint16_t channel_count = __builtin_bswap16((*start)->rp->channel_count);
+    uint32_t packet_count = __builtin_bswap32((*start)->rp->packet_count);
+    double offset = 0.0;
+    double utc_from_ptp = RfsocBuilder::get_utc_from_ptp_timestamp((*start)->rp->raw_ptp_timestamp, offset);
+
+    //std::cout << (*start)->rp->channel_count << " " << __builtin_bswap16((*start)->rp->channel_count) << std::endl;
+    //std::cout << (*start)->rp->packet_count << " " << __builtin_bswap32((*start)->rp->packet_count) << std::endl;
+
     // Create and return G3Frame
     G3FramePtr frame = std::make_shared<G3Frame>(G3Frame::Scan);
     frame->Put("time", std::make_shared<G3Time>(G3Time::Now()));
-    frame->Put("data", data_ts);
+    frame->Put("channel_count", std::make_shared<G3Int>(channel_count));
+    frame->Put("packet_count", std::make_shared<G3Int>(packet_count));
     frame->Put("num_samples", std::make_shared<G3Int>(nsamps));
+    frame->Put("utc_from_ptp", std::make_shared<G3Double>(utc_from_ptp));
+    frame->Put("data", data_ts);
 
     return frame;
 }

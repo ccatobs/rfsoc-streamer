@@ -45,6 +45,9 @@ private:
     // Calls FlushStash every agg_duration_ seconds
     static void ProcessStashThread(RfsocBuilder *);
 
+    // Converts raw_ptp_timestamp to utc 
+    double get_utc_from_ptp_timestamp(unsigned char d[], double offset);
+
     // Sets SuperTimestream encoding algorithms:
     //   - 0: No compression
     //   - 1: FLAC only
