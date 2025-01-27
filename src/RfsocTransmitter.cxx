@@ -21,7 +21,7 @@
 
 #define RECEIVE_IP	"192.168.3.40"	// The real transmitter
 //#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
-#define CONNECT_IP      "192.168.3.56"  // The drone IP address from which to receive packets
+#define CONNECT_IP      "192.168.3.58"  // The drone IP address from which to receive packets
 #define RECEIVE_PORT	4096
 #define CONNECT_PORT    4096
 

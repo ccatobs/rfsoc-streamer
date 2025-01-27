@@ -8,9 +8,12 @@ struct RfsocPacket {
     //Trying immediately casting packets to ints for easier access in RfsocBuilder
     int32_t data[NUMBER_CHANNELS]; 
     uint8_t packet_info[2]; // two bytes of flags for current drone
+    // variables below being read as little-endian, but need to be converted to big-endian
+    // conversion takes place in RfsocBuilder
     uint16_t channel_count; // number of tones currently written
     uint32_t packet_count;  // packet count since streaming began
-    unsigned char raw_ptp_timestamp[12];
+    uint32_t ptp_int_array[3];  // 3-int array of 12-byte raw_ptp_timestamp
+    //unsigned char raw_ptp_timestamp[12];
 } __attribute__((packed));
 
 typedef std::shared_ptr<RfsocPacket> RfsocPacketPtr;

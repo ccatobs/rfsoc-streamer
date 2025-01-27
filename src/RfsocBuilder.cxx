@@ -17,6 +17,7 @@
 #include <G3Timestream.h>
 #include <G3Map.h>
 #include <G3Timesample.h>
+#include <G3Units.h>
 
 #include <pybindings.h>                //from spt3g
 //#include <boost/python.hpp>
@@ -113,6 +114,7 @@ void RfsocBuilder::FlushStash(){
 
     auto start = read_stash_.begin();
     auto stop = read_stash_.begin();
+    int nchans = __builtin_bswap16((*start)->rp->channel_count) * 2;
     while(true){
         stop += 1;
         if (stop == read_stash_.end()){
@@ -120,24 +122,64 @@ void RfsocBuilder::FlushStash(){
             break;
         }
         // There was more stuff here in SmurfBuilder to catch if the number of channels changed
+        int stop_nchans = __builtin_bswap16((*stop)->rp->channel_count) * 2;        
+        if (stop_nchans != nchans) {
+            printf("NumChannels has changed from %d to %d!!", nchans, stop_nchans);
+            // Do we just want to issue the warning, or carry out the remaining SmurfBuilder steps?
+            // FrameOut(FrameFromSamples(start, stop));
+            // start = stop;
+            // nchans = stop_nchans;
+        }
     }
     read_stash_.clear();
 }
 
-double RfsocBuilder::get_utc_from_ptp_timestamp(unsigned char d[], double offset)
+double RfsocBuilder::double_get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset=-37)
 {
-  // offset from TAI to UTC is currently -37 seconds (from Adrian Sinclair 2024 python code)
-  return int((d[-3] << 18) | (d[-2] >> 14)) + int((((d[-2] & 0x00003FFF) << 16) | (d[-1] >> 16))) * 1e-9 + offset;
+  // ptp_int_array elements are read as little-endian, but need to be converted to big-endian
+  // ptp_timestamp is in TAI -- need to convert to UTC
+  // offset from TAI to UTC is currently -37 seconds
+  
+  uint32_t d0 = __builtin_bswap32(ptp_ints[0]);
+  uint32_t d1 = __builtin_bswap32(ptp_ints[1]);
+  uint32_t d2 = __builtin_bswap32(ptp_ints[2]);
+  return int((d0 << 18) | (d1 >> 14)) + 
+    int((((d1 & 0x00003FFF) << 16) | (d2 >> 16))) * 1e-9 + offset;
+  //return int((d[-3] << 18) | (d[-2] >> 14)) + int((((d[-2] & 0x00003FFF) << 16) | (d[-1] >> 16))) * 1e-9 + offset;
 }
+
+G3Time RfsocBuilder::get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset=-37)
+{
+  // ptp_int_array elements are read as little-endian, but need to be converted to big-endian
+  // ptp_timestamp is in TAI -- need to convert to UTC
+  // offset from TAI to UTC is currently -37 seconds
+  
+  uint32_t d0 = __builtin_bswap32(ptp_ints[0]);
+  uint32_t d1 = __builtin_bswap32(ptp_ints[1]);
+  uint32_t d2 = __builtin_bswap32(ptp_ints[2]);
+
+  int64_t seconds = int((d0 << 18) | (d1 >> 14)) + offset;
+  int64_t nanoseconds =  int((((d1 & 0x00003FFF) << 16) | (d2 >> 16)));
+  int64_t microseconds = int(nanoseconds/1000);
+  //return G3Time(seconds*G3TimeStamp(G3Units::s) + nanoseconds*G3TimeStamp(G3Units::ns));
+  return G3Time(seconds*G3TimeStamp(G3Units::s) + microseconds*G3TimeStamp(G3Units::us));
+
+
+  //return int((d[-3] << 18) | (d[-2] >> 14)) + int((((d[-2] & 0x00003FFF) << 16) | (d[-1] >> 16))) * 1e-9 + offset;
+}
+
 
 // Builds a frame from whatever number of samples were in the queue
 G3FramePtr RfsocBuilder::FrameFromSamples(
         std::deque<RfsocSampleConstPtr>::iterator start,
         std::deque<RfsocSampleConstPtr>::iterator stop){
 
+    uint16_t channel_count = __builtin_bswap16((*start)->rp->channel_count);
+    uint32_t start_packet_count = __builtin_bswap32((*start)->rp->packet_count);
+
     int nsamps = stop - start;
-    int nchans = 2048; // Eventually would like to get only the active channels from packet, but there are 2*1024 total
-    int nres = nchans / 2; // Total number of resonators for generating names
+    int nchans = channel_count * 2; // each channel contains I,Q -- so multiply by 2
+    int nres = channel_count; // Total number of resonators for generating names
 
     // Initialize detector timestreams
     int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
@@ -157,6 +199,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
 
     // Read data in to G3 Objects
     int sample = 0;
+    uint32_t current_packet_count;
     for (auto it = start; it != stop; it++, sample++){
         sample_times[sample] = (*it)->GetTime();
 
@@ -166,6 +209,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
             //data_buffer[sample + i * nsamps] = per_data[i];
             data_buffer[sample + i * nsamps] = (*it)->rp->data[i];
         }
+        current_packet_count = (*it)->rp->packet_count;
     }
 
     PyGILState_STATE gstate;
@@ -193,21 +237,35 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     PyGILState_Release(gstate);
     free(data_buffer);
 
-    uint16_t channel_count = __builtin_bswap16((*start)->rp->channel_count);
-    uint32_t packet_count = __builtin_bswap32((*start)->rp->packet_count);
-    double offset = 0.0;
-    double utc_from_ptp = RfsocBuilder::get_utc_from_ptp_timestamp((*start)->rp->raw_ptp_timestamp, offset);
+    //uint16_t channel_count = __builtin_bswap16((*start)->rp->channel_count);
+    //uint32_t start_packet_count = __builtin_bswap32((*start)->rp->packet_count);
+    // moved code to get channel_count and start_packet count to the top of this method
+    uint32_t last_packet_count = __builtin_bswap32(current_packet_count);
+    //uint32_t ptp_ints[3];
+    //ptp_ints = (*start)->rp->ptp_int_array;
+    uint32_t ptp_ints[3] = { ((*start)->rp->ptp_int_array)[0], ((*start)->rp->ptp_int_array)[1], ((*start)->rp->ptp_int_array)[2] };
+    G3Time utc_from_ptp = RfsocBuilder::get_utc_from_ptp_int_array(ptp_ints);
+    double double_utc_from_ptp = RfsocBuilder::double_get_utc_from_ptp_int_array(ptp_ints);
 
     //std::cout << (*start)->rp->channel_count << " " << __builtin_bswap16((*start)->rp->channel_count) << std::endl;
     //std::cout << (*start)->rp->packet_count << " " << __builtin_bswap32((*start)->rp->packet_count) << std::endl;
+
+    uint8_t packet_flag_1 = ((*start)->rp->packet_info)[0];
+    uint8_t packet_flag_2 = ((*start)->rp->packet_info)[1];
+    //uint8_t packet_flag_1 = { ((*start)->rp->packet_info)[0] };
+    //uint8_t packet_flag_2 = { ((*start)->rp->packet_info)[1] };
 
     // Create and return G3Frame
     G3FramePtr frame = std::make_shared<G3Frame>(G3Frame::Scan);
     frame->Put("time", std::make_shared<G3Time>(G3Time::Now()));
     frame->Put("channel_count", std::make_shared<G3Int>(channel_count));
-    frame->Put("packet_count", std::make_shared<G3Int>(packet_count));
+    frame->Put("start_packet_count", std::make_shared<G3Int>(start_packet_count));
+    frame->Put("last_packet_count", std::make_shared<G3Int>(last_packet_count));
     frame->Put("num_samples", std::make_shared<G3Int>(nsamps));
-    frame->Put("utc_from_ptp", std::make_shared<G3Double>(utc_from_ptp));
+    frame->Put("utc_from_ptp", std::make_shared<G3Time>(utc_from_ptp));
+    //frame->Put("double_utc_from_ptp", std::make_shared<G3Double>(double_utc_from_ptp));
+    frame->Put("packet_flag_1", std::make_shared<G3Int>(packet_flag_1));
+    frame->Put("packet_flag_2", std::make_shared<G3Int>(packet_flag_2));
     frame->Put("data", data_ts);
 
     return frame;

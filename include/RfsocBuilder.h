@@ -46,7 +46,8 @@ private:
     static void ProcessStashThread(RfsocBuilder *);
 
     // Converts raw_ptp_timestamp to utc 
-    double get_utc_from_ptp_timestamp(unsigned char d[], double offset);
+    G3Time get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset);
+    double double_get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset);
 
     // Sets SuperTimestream encoding algorithms:
     //   - 0: No compression
