@@ -15,6 +15,12 @@
 // Memory usage should be capped to around a few GB
 #define MAX_BUILDER_QUEUE_SIZE 150000000 //Check if this make sense for us
 
+// Flow control contants
+#define FC_ALIVE 0
+#define FC_START 1
+#define FC_STOP 2
+#define FC_CLEANSE 3
+
 class RfsocBuilder : public G3EventBuilder{
 public:
     RfsocBuilder();
@@ -28,13 +34,35 @@ public:
     void SetAggDuration(float dur){ agg_duration_ = dur;};
     const float GetAggDuration(){ return agg_duration_; };
 
+    void SetDebug(bool d){ debug_ = d; };
+    const bool GetDebug(){ return debug_; };
+
+    void SetEncode(bool b){ encode_timestreams_ = b; };
+    const bool GetEncode(){ return encode_timestreams_;};
+
+    void SetDataEncodeAlgo(int algo);
+    int GetDataEncodeAlgo() const;
+
+    void SetTimeEncodeAlgo(int algo);
+    int GetTimeEncodeAlgo() const;
+
+    void SetEnableCompression(int enable);
+    int GetEnableCompression() const;
+
+    void SetBz2WorkFactor(int bz2_work_factor);
+    int GetBz2WorkFactor() const;
+
+    void SetFlacLevel(int flac_level);
+    int GetFlacLevel() const;
+
+    size_t GetDroppedFrames();
 
 protected:
     void ProcessNewData();
 
 private:
     // Deques containing data sample pointers.
-    std::deque<RfsocSampleConstPtr> write_stash_, read_stash_; 
+    std::deque<RfsocSampleConstPtr> write_stash_, read_stash_;
     std::mutex write_stash_lock_, read_stash_lock_;
 
     uint16_t num_channels_;
@@ -44,6 +72,10 @@ private:
 
     // Calls FlushStash every agg_duration_ seconds
     static void ProcessStashThread(RfsocBuilder *);
+
+    // Converts raw_ptp_timestamp to utc 
+    G3Time get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset);
+    double double_get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset);
 
     // Sets SuperTimestream encoding algorithms:
     //   - 0: No compression
