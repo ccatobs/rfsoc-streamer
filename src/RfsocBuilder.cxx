@@ -237,18 +237,11 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     PyGILState_Release(gstate);
     free(data_buffer);
 
-    //uint16_t channel_count = __builtin_bswap16((*start)->rp->channel_count);
-    //uint32_t start_packet_count = __builtin_bswap32((*start)->rp->packet_count);
     // moved code to get channel_count and start_packet count to the top of this method
     uint32_t last_packet_count = __builtin_bswap32(current_packet_count);
-    //uint32_t ptp_ints[3];
-    //ptp_ints = (*start)->rp->ptp_int_array;
     uint32_t ptp_ints[3] = { ((*start)->rp->ptp_int_array)[0], ((*start)->rp->ptp_int_array)[1], ((*start)->rp->ptp_int_array)[2] };
     G3Time utc_from_ptp = RfsocBuilder::get_utc_from_ptp_int_array(ptp_ints);
     double double_utc_from_ptp = RfsocBuilder::double_get_utc_from_ptp_int_array(ptp_ints);
-
-    //std::cout << (*start)->rp->channel_count << " " << __builtin_bswap16((*start)->rp->channel_count) << std::endl;
-    //std::cout << (*start)->rp->packet_count << " " << __builtin_bswap32((*start)->rp->packet_count) << std::endl;
 
     uint8_t packet_flag_1 = ((*start)->rp->packet_info)[0];
     uint8_t packet_flag_2 = ((*start)->rp->packet_info)[1];
