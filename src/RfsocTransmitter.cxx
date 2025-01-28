@@ -3,7 +3,7 @@
  *
  * Code to take in packets and place them into G3Pipeline queue
  *
- * Modeled extensively off of the SO smurf-streamer's SmurfTransmitter.cpp
+ * Modeled extensively off of the SO Rfsoc-streamer's RfsocTransmitter.cpp
  * but with added elements from spt3g-software's DfMuxCollector.cxx
  */
 
@@ -14,16 +14,18 @@
 #include <algorithm>
 #include <iterator>
 #include <inttypes.h>
+#include <boost/python.hpp>
 
 #include <bits/stdc++.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define RECEIVE_IP	"192.168.3.40"	// The real transmitter
-//#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
-#define CONNECT_IP      "192.168.3.58"  // The drone IP address from which to receive packets
+#define RECEIVE_IP	"192.168.3.40"	// The receiving computer IP
+#define CONNECT_IP  "192.168.3.58"  // The drone IP address from which to receive packets
 #define RECEIVE_PORT	4096
 #define CONNECT_PORT    4096
+
+namespace bp = boost::python;
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
     builder_(builder), success_(false), stop_listening_(false)
@@ -128,3 +130,12 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
     }
 }
 
+void setup_python(){
+    bp::class_< RfsocTransmitter,
+                std::shared_ptr<RfsocTransmitter>,
+                boost::noncopyable >
+                ("RfsocTransmitter", bp::init<G3EventBuilderPtr>())
+        .def(bp::init<G3EventBuilderPtr, bool, bool>())
+    // No other functions to expose here
+    ;
+}

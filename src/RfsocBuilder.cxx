@@ -20,7 +20,7 @@
 #include <G3Units.h>
 
 #include <pybindings.h>                //from spt3g
-//#include <boost/python.hpp>
+#include <boost/python.hpp>
 #include <container_pybindings.h>      //from spt3g
 
 #include <chrono>
@@ -28,6 +28,8 @@
 #include <thread>
 #include <inttypes.h>
 #include <G3SuperTimestream.h>         //from so3g
+
+namespace bp = boost::python;
 
 RfsocBuilder::RfsocBuilder() :
     G3EventBuilder(MAX_DATASOURCE_QUEUE_SIZE),
@@ -295,4 +297,34 @@ int RfsocBuilder::GetFlacLevel() const{
 
 void RfsocBuilder::SetFlacLevel(int flac_level){
     flac_level_ = flac_level;
+}
+
+void RfsocBuilder::setup_python(){
+
+    bp::class_< RfsocBuilder, bp::bases<G3EventBuilder>,
+                RfsocBuilderPtr, boost::noncopyable>
+    ("RfsocBuilder",
+    "Takes transmitted packets from RfsocTransmitter and puts them into G3Frames, 
+    starting off the stream's G3Pipeline ",
+    bp::init<>())
+    .def("GetAggDuration", &RfsocBuilder::GetAggDuration)
+    .def("SetAggDuration", &RfsocBuilder::SetAggDuration)
+    .def("getDebug", &RfsocBuilder::getDebug)
+    .def("setDebug", &RfsocBuilder::setDebug)
+    .def("getEncode", &RfsocBuilder::getEncode)
+    .def("setEncode", &RfsocBuilder::setEncode)
+    .def("getDataEncodeAlgo", &RfsocBuilder::getDataEncodeAlgo)
+    .def("setDataEncodeAlgo", &RfsocBuilder::setDataEncodeAlgo)
+    .def("getTimeEncodeAlgo", &RfsocBuilder::getTimeEncodeAlgo)
+    .def("setTimeEncodeAlgo", &RfsocBuilder::setTimeEncodeAlgo)
+    .def("getEnableCompression", &RfsocBuilder::getEnableCompression)
+    .def("setEnableCompression", &RfsocBuilder::setEnableCompression)
+    .def("getBz2WorkFactor", &RfsocBuilder::getBz2WorkFactor)
+    .def("setBz2WorkFactor", &RfsocBuilder::setBz2WorkFactor)
+    .def("getFlacLevel", &RfsocBuilder::getFlacLevel)
+    .def("setFlacLevel", &RfsocBuilder::setFlacLevel)
+    .def("getDroppedFrames", &RfsocBuilder::getDroppedFrames)
+    ;
+    bp::implicitly_convertible<RfsocBuilderPtr, G3ModulePtr>();
+
 }

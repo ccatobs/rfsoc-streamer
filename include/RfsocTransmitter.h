@@ -20,6 +20,8 @@ public:
 
     ~RfsocTransmitter();
 
+    static void setup_python();
+
     int Start(); //Start listening thread 
     int Stop(); // Stop listening thread
 

@@ -26,6 +26,8 @@ public:
     RfsocBuilder();
     ~RfsocBuilder();
 
+    static void setup_python();
+
     G3FramePtr FrameFromSamples(
             std::deque<RfsocSampleConstPtr>::iterator start,
             std::deque<RfsocSampleConstPtr>::iterator stop);
