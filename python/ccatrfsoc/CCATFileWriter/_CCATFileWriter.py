@@ -39,7 +39,7 @@ class G3Rotator:
         file_start_time: float
             Start time of the current file
         file_dur: float
-            Duration of file before rotating
+            Duration of file before rotating in seconds
         cur_session_id: int
             Session id of the current data stream. 0 if there is no data
             streaming.
