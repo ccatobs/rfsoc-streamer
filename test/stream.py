@@ -17,8 +17,11 @@ stream_id = 'test'
 
 def main() -> None:
 # Initializing the Python parts of the G3Pipeline
-    builder = ccatrfsoccore.RfsocBuilder(options)
-    transmitter = ccatrfsoccore.RfsocTransmitter(builder, options)
+    # Should eventually add the ability to set the variables
+    # that are passed by default to the C++ RfsocBuilder constructor (debug, etc.)
+    builder = ccatrfsoccore.RfsocBuilder()
+    # Need to add the ability to take in the source IP address as an argument to C++ transmitter constructor
+    transmitter = ccatrfsoccore.RfsocTransmitter(builder, source_ip)
     transmitter.Start()
 
     pipe = core.G3Pipeline()
