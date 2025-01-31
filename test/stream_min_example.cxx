@@ -28,7 +28,7 @@ int main()
 
     G3Pipeline pipe;
     std::shared_ptr<RfsocBuilder> builder = std::make_shared<RfsocBuilder>();
-    RfsocTransmitter* transmitter = new RfsocTransmitter(builder);
+    RfsocTransmitter* transmitter = new RfsocTransmitter(builder, "192.168.3.58");
     transmitter->Start();
 
     pipe.Add(builder);

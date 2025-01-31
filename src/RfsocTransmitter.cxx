@@ -14,20 +14,23 @@
 #include <algorithm>
 #include <iterator>
 #include <inttypes.h>
+#include <boost/python.hpp>
 
 #include <bits/stdc++.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define RECEIVE_IP	"192.168.3.40"	// The real transmitter
-//#define BROADCAST_IP	"127.255.255.255"	// The local computer for testing
-#define CONNECT_IP      "192.168.3.58"  // The drone IP address from which to receive packets
+#define RECEIVE_IP	"192.168.3.40"	// The receiving computer IP
+//#define CONNECT_IP  "192.168.3.58"  // The drone IP address from which to receive packets
 #define RECEIVE_PORT	4096
 #define CONNECT_PORT    4096
 
-RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder) :
+namespace bp = boost::python;
+
+RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder, std::string source_ip) :
     builder_(builder), success_(false), stop_listening_(false)
 {
+    connect_ip_ = source_ip;
     success_ = (SetupUDPSocket() != 0);
 }
 
@@ -87,7 +90,7 @@ int RfsocTransmitter::SetupUDPSocket()
     serv_addr.sin_family    = AF_INET;
     serv_addr.sin_port      = htons(CONNECT_PORT);
     // Convert server IP to binary
-    if (inet_pton(AF_INET, CONNECT_IP, &serv_addr.sin_addr) < 0) {
+    if (inet_pton(AF_INET, connect_ip_.c_str(), &serv_addr.sin_addr) < 0) {
         perror("Invalid connect IP address");
         exit(EXIT_FAILURE);
     }
@@ -128,3 +131,12 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
     }
 }
 
+void RfsocTransmitter::setup_python(){
+    bp::class_< RfsocTransmitter,
+                std::shared_ptr<RfsocTransmitter>,
+                boost::noncopyable >
+                ("RfsocTransmitter", bp::init<G3EventBuilderPtr, std::string>())
+    .def("Start", &RfsocTransmitter::Start)
+    .def("GetConnectIP", &RfsocTransmitter::GetConnectIP)
+    ;
+}

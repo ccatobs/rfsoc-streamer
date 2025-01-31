@@ -16,14 +16,17 @@
 class RfsocTransmitter{
 public:
 
-    RfsocTransmitter(G3EventBuilderPtr builder);
+    RfsocTransmitter(G3EventBuilderPtr builder, std::string source_ip);
 
     ~RfsocTransmitter();
+
+    static void setup_python();
 
     int Start(); //Start listening thread 
     int Stop(); // Stop listening thread
 
-
+    std::string GetConnectIP() { return connect_ip_; }
+ 
 private:
 
     G3EventBuilderPtr builder_;
@@ -37,8 +40,10 @@ private:
 	std::thread listen_thread_;
 
     bool success_;
-	volatile bool stop_listening_;
+    volatile bool stop_listening_;
     int sockfd;
+
+    std::string connect_ip_ = "";
 
     SET_LOGGER("RfsocTransmitter")
 };

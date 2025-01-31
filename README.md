@@ -1,6 +1,7 @@
-```
-rfsoc-streamer
+# rfsoc-streamer
 
+## Building base environment
+```
 # on an instance running ubuntu22
 # confirmed /usr/bin/python3 is running 3.10
 
@@ -63,6 +64,49 @@ cmake \
 make
 make install
 #
+cd ~/git/so3g
+mkdir -p build
+cd build
+
+cmake \
+  -DCMAKE_PREFIX_PATH=${HOME}/git/spt3g_software/build \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
+  -DPYTHON_INSTALL_DEST="${HOME}/so3g" \
+  -DCMAKE_INSTALL_PREFIX="${HOME}/so3g" \
+  ..
+
+make
+make install
+#
+```
+## Building and running rfsoc-streamer
+
+Various environment variables are set in ~/.bashrc to point to so3g, spt3g, rfsoc_streamer, etc.
+
+### Python-wrapped version
+
+```
+source ~/streamer_test/bin/activate    # activate the python virtual environment
+
+cd ~/git/rfsoc-streamer
+cmake .    # this will create multiple cmake-related files and a Makefile
+make       # or "VERBOSE=1 make" if you want more information printed out during make
+
+python test/stream.py
+
+# run this for a little while, then terminate with Ctrl-C
+# this should produce one more g3 files under ~/data/g3, with timestamp information distinguishing files
+
+# if you want to either write to a different directory, 
+# or receive packets from a different IP address,
+# or change the file_dur (file duration before rotating),
+# modify the code in test/stream.py and re-run the python code
+```
+
+### Pure C++ version
+
+```
 cd ~/git/rfsoc-streamer
 cd src
 make
@@ -70,9 +114,15 @@ make
 cd ../test
 make
 
-export LD_LIBRARY_PATH=/home/ubuntu/so3g/lib:/home/ubuntu/so3g/so3g
-./stream_min_example   # this will eventually segfault, but not before creating an empty test.g3 in the data directory
+./stream_min_example
 
-make cppexample           # this will make cppexample
-./cppexample a_g3_file.g3 data/test2.g3   # this will read a_g3_file.g3 and write the contents to data/test2.g3
+# run this for a little while, then terminate with Ctrl-C
+# should produce a g3 file in ~/data/test.g3
+
+# if you want to either write to a different filename, 
+# or receive packets from a different IP address,
+# modify the code in stream_min_example.cxx and remake the executable
+
+make inspect_g3           # this will make inspect_g3
+./inspect_g3 a_g3_file.g3 # this will read a_g3_file.g3 and print a summary of its contents to stdout
 ```

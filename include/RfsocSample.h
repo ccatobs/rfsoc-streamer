@@ -24,23 +24,19 @@ public:
     const G3Time GetTime() const {
         return time_;
     }
-    
+
     const uint16_t GetChannelCount() const {
         return __builtin_bswap16(rp->channel_count);
     }
     const uint32_t GetPacketCount() const {
         return __builtin_bswap32(rp->packet_count);
     }
-    /* for further development to get array creation correct
-    const std::vector<uint32_t> GetPtpIntArray() const { 
-        std::vector<uint32_t> arr(3);
+    const void GetPtpIntArray(uint32_t* arr) const { 
+        // take 3-element int array and byteswaps each int in place, modifying arr
         arr[0] = __builtin_bswap32(rp->ptp_int_array[0]);
         arr[1] = __builtin_bswap32(rp->ptp_int_array[1]); 
         arr[2] = __builtin_bswap32(rp->ptp_int_array[2]); 
-        //return { __builtin_bswap32(rp->ptp_int_array[0]), __builtin_bswap32(rp->ptp_int_array[1]), __builtin_bswap32(rp->ptp_int_array[2]) };
-        return arr;
     }
-    */
 
 
 private:
