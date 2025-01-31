@@ -3,7 +3,7 @@
  *
  * Code to take in packets and place them into G3Pipeline queue
  *
- * Modeled extensively off of the SO Rfsoc-streamer's RfsocTransmitter.cpp
+ * Modeled extensively off of the SO smurf-streamer's SmurfTransmitter.cpp
  * but with added elements from spt3g-software's DfMuxCollector.cxx
  */
 
