@@ -19,17 +19,19 @@ stream_min_example.o: stream_min_example.cxx
 	$(CC) -c -o $@ $(CFLAGS) $^
 
 stream_min_example: $(OBJS)
-	$(CC) -o stream_min_example $(OBJS) $(LFLAGS) $(LIBS) -Wl,-rpath-link=${HOME}/streamer_test/lib/python3.10/site-packages/so3g.libs
+	$(CC) -o stream_min_example $(OBJS) $(LFLAGS) $(LIBS) -Wl,-rpath-link=${HOME}/so3g/lib
 
 
 clean:
 	rm -f $(OBJS) $(EXE)
 
-EXE2 = cppexample
-OBJS2 = cppexample.o
+EXE2 = inspect_g3
+OBJS2 = inspect_g3.o
 
-cppexample.o: cppexample.cxx
+inspect_g3.o: inspect_g3.cxx
 	$(CC) -c -o $@ $(CFLAGS) $^
 
-cppexample: $(OBJS2)
-	$(CC) -o cppexample $(OBJS2) $(LFLAGS) $(LIBS) -Wl,-rpath-link=${HOME}/streamer_test/lib/python3.10/site-packages/so3g.libs
+inspect_g3: $(OBJS2)
+	$(CC) -o inspect_g3 $(OBJS2) $(LFLAGS) $(LIBS) -Wl,-rpath-link=${HOME}/so3g/lib
+
+

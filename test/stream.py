@@ -20,15 +20,14 @@ def main() -> None:
     # Should eventually add the ability to set the variables
     # that are passed by default to the C++ RfsocBuilder constructor (debug, etc.)
     builder = ccatrfsoccore.RfsocBuilder()
-    # Need to add the ability to take in the source IP address as an argument to C++ transmitter constructor
     transmitter = ccatrfsoccore.RfsocTransmitter(builder, source_ip)
     transmitter.Start()
 
     pipe = core.G3Pipeline()
     pipe.Add(builder)
     pipe.Add(ccatrfsoc.SessionManager.SessionManager, stream_id=stream_id)
-    pipe.Add(ccatrfsoc.G3Rotator, g3_dir, file_dur=10*60)
-    pipe.Run(profile=True)
+    pipe.Add(ccatrfsoc.G3Rotator, data_path=g3_dir, file_dur=60)
+    pipe.Run(profile=False)
 
 if __name__ == '__main__':
     main()

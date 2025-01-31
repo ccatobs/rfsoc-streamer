@@ -3,7 +3,7 @@
 # ALSO NEED TO SET ENV VARIABLES!
 
 # Check cmake version
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.30)
 include(InstallRequiredSystemLibraries)
 
 # cmake policies -- best to keep these in sync with spt3g!
@@ -25,6 +25,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wno-deprecated -O3")
 #####################################
 # Link SPT3g Libraries
 #####################################
+#
+# needed environment variables to be set for rfsoc
+# export SPT3G_SOFTWARE_PATH=${HOME}/git/spt3g_software/
+# export SO3G_DIR=${HOME}/git/so3g
 set(SPT3G_DIR $ENV{SPT3G_SOFTWARE_PATH})
 set(SO3G_DIR $ENV{SO3G_DIR})
 link_directories(${SPT3G_DIR}/build/spt3g)
@@ -32,33 +36,33 @@ link_directories(${SPT3G_DIR}/build/spt3g)
 #####################################
 # Find Support Libraries
 #####################################
+
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS thread)
 
 # #####################################
 # # Find python3
 # #####################################
-# set(DO_PYTHON 0)
-#
-find_package(PythonInterp 3.6 REQUIRED)
-find_package(PythonLibs 3.6 REQUIRED)
 
-find_package (Python3 COMPONENTS Interpreter Development)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
+find_package(Boost REQUIRED COMPONENTS python3)
 
 #####################################
 # Setup build
 #####################################
-include_directories(/usr/local/include/)
 
 # Include files
 include_directories(${SPT3G_DIR}/core/include/core)
 include_directories(${SPT3G_DIR}/core/include)
 include_directories(${SPT3G_DIR}/core/src)
 include_directories(${SO3G_DIR}/include)
+include_directories(/usr/include/python3.10)
+include_directories(${PROJECT_SOURCE_DIR}/include/)  # rfsoc-streamer/include
 
-
-include_directories(/usr/local/include/)
-include_directories(${PROJECT_SOURCE_DIR}/include/)
+# Create rfsoc python library
+set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/RfsocBuilder.cxx ${PROJECT_SOURCE_DIR}/src/RfsocTransmitter.cxx ${PROJECT_SOURCE_DIR}/src/python.cpp)
+#AUX_SOURCE_DIRECTORY(src SRC_FILES)
+add_library(RfsocStreamer SHARED ${SRC_FILES})
 
 # Set output to TOP/lib, remove lib prefix
 set_target_properties(RfsocStreamer PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -66,5 +70,6 @@ set_target_properties(RfsocStreamer PROPERTIES PREFIX "")
 set_target_properties(RfsocStreamer PROPERTIES OUTPUT_NAME "ccatrfsoccore")
 
 # Link to spt3g and so3g
-TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SPT3G_DIR}/build/spt3g/libspt3g-core.so)
+TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SPT3G_DIR}/build/lib/libspt3g-core.so)
 TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SO3G_DIR}/build/so3g/libso3g.so)
+TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC /usr/lib/x86_64-linux-gnu/libboost_filesystem.so)

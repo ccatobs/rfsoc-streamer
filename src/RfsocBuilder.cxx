@@ -227,8 +227,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     free(data_buffer);
 
     uint32_t last_packet_count = current_packet_count;
-    //std::vector<uint32_t> ptp_ints = { (*start)->GetPtpIntArray() };
-    uint32_t ptp_ints[3] = { __builtin_bswap32((*start)->rp->ptp_int_array[0]), __builtin_bswap32((*start)->rp->ptp_int_array[1]), __builtin_bswap32((*start)->rp->ptp_int_array[2]) };
+    uint32_t ptp_ints[3];
+    (*start)->GetPtpIntArray(&ptp_ints[0]);
 
     G3Time utc_from_ptp = RfsocBuilder::get_utc_from_ptp_int_array(ptp_ints);
     double double_utc_from_ptp = RfsocBuilder::double_get_utc_from_ptp_int_array(ptp_ints);
@@ -304,26 +304,25 @@ void RfsocBuilder::setup_python(){
     bp::class_< RfsocBuilder, bp::bases<G3EventBuilder>,
                 RfsocBuilderPtr, boost::noncopyable>
     ("RfsocBuilder",
-    "Takes transmitted packets from RfsocTransmitter and puts them into G3Frames, 
-    starting off the stream's G3Pipeline ",
+    "Takes transmitted packets from RfsocTransmitter and puts them into G3Frames, starting off the stream's G3Pipeline",
     bp::init<>())
     .def("GetAggDuration", &RfsocBuilder::GetAggDuration)
     .def("SetAggDuration", &RfsocBuilder::SetAggDuration)
-    .def("getDebug", &RfsocBuilder::getDebug)
-    .def("setDebug", &RfsocBuilder::setDebug)
-    .def("getEncode", &RfsocBuilder::getEncode)
-    .def("setEncode", &RfsocBuilder::setEncode)
-    .def("getDataEncodeAlgo", &RfsocBuilder::getDataEncodeAlgo)
-    .def("setDataEncodeAlgo", &RfsocBuilder::setDataEncodeAlgo)
-    .def("getTimeEncodeAlgo", &RfsocBuilder::getTimeEncodeAlgo)
-    .def("setTimeEncodeAlgo", &RfsocBuilder::setTimeEncodeAlgo)
-    .def("getEnableCompression", &RfsocBuilder::getEnableCompression)
-    .def("setEnableCompression", &RfsocBuilder::setEnableCompression)
-    .def("getBz2WorkFactor", &RfsocBuilder::getBz2WorkFactor)
-    .def("setBz2WorkFactor", &RfsocBuilder::setBz2WorkFactor)
-    .def("getFlacLevel", &RfsocBuilder::getFlacLevel)
-    .def("setFlacLevel", &RfsocBuilder::setFlacLevel)
-    .def("getDroppedFrames", &RfsocBuilder::getDroppedFrames)
+    .def("GetDebug", &RfsocBuilder::GetDebug)
+    .def("SetDebug", &RfsocBuilder::SetDebug)
+    .def("GetEncode", &RfsocBuilder::GetEncode)
+    .def("SetEncode", &RfsocBuilder::SetEncode)
+    .def("GetDataEncodeAlgo", &RfsocBuilder::GetDataEncodeAlgo)
+    .def("SetDataEncodeAlgo", &RfsocBuilder::SetDataEncodeAlgo)
+    .def("GetTimeEncodeAlgo", &RfsocBuilder::GetTimeEncodeAlgo)
+    .def("SetTimeEncodeAlgo", &RfsocBuilder::SetTimeEncodeAlgo)
+    .def("GetEnableCompression", &RfsocBuilder::SetEnableCompression)
+    .def("SetEnableCompression", &RfsocBuilder::SetEnableCompression)
+    .def("GetBz2WorkFactor", &RfsocBuilder::GetBz2WorkFactor)
+    .def("SetBz2WorkFactor", &RfsocBuilder::SetBz2WorkFactor)
+    .def("GetFlacLevel", &RfsocBuilder::GetFlacLevel)
+    .def("SetFlacLevel", &RfsocBuilder::SetFlacLevel)
+    .def("GetDroppedFrames", &RfsocBuilder::GetDroppedFrames)
     ;
     bp::implicitly_convertible<RfsocBuilderPtr, G3ModulePtr>();
 
