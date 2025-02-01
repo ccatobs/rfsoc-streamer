@@ -1,5 +1,5 @@
 from spt3g import core
-import yaml
+import signal
 import time
 from enum import Enum
 
@@ -30,6 +30,18 @@ class SessionManager:
         self.end_session_flag = False
         self.frame_num = 0
         self.status = {}
+
+    def signal_handler(self,sig,frame):
+        """
+        Handler to exit appropriately on SIGINT for edge
+        case where data stream never started so no
+        frames are being sent.
+        This lets the FileWriter know that it should end.
+        """
+        self.session_id = None
+        self.end_session_flag = False
+        self.frame_num = 0
+        return self.flowcontrol_frame(FlowControl.END)
 
     def flowcontrol_frame(self, fc):
         """
@@ -72,10 +84,13 @@ class SessionManager:
         #######################################
         if frame.type == core.G3FrameType.none:
 
+            # Add sigint handler to close nicely on Ctrl+C
+            signal.signal(signal.SIGINT, self.signal_handler)
+
             # In absence of wiring frames or registers from RFSoC, 
             # trigger end of session on first None frame following data frames.
             if self.session_id is not None:
-                # Returns [previous, end, obs cleanse, wiring cleanse]
+                # Returns [previous, end]
                 out = []
 
                 end_session_frame = core.G3Frame(core.G3FrameType.Observation)
