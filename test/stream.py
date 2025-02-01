@@ -10,12 +10,12 @@ def main() -> None:
         cfg_dir = os.environ['STREAM_CONFIG_DIR']
     else:
         raise ValueError("STREAM_CONFIG_DIR must be set in environment")
-    
-    with open(os.path.join(cfg_dir, 'stream_config.yml')) as f:
+
+    with open(os.path.join(cfg_dir, 'stream_config.yaml')) as f:
         cfg = yaml.safe_load(f)
 
     g3_dir = cfg['g3_dir']
-    file_length = cfg['file_rotation_time']
+    file_length = int(cfg['file_rotation_time'])
 
     # Setting option to pass in board and drone numbers
     # When running with Docker, these will usually be set in the env
@@ -48,6 +48,9 @@ def main() -> None:
         raise ValueError("stream_id improperly formatted. Should be like rfsoc##_drone#")
 
     source_ip = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']['drone_stream_ip']
+
+    print(f"Stream id: {stream_id}")
+    print(f"Streaming IP address: {source_ip}")
 
     # Initializing the Python parts of the G3Pipeline
     # Should eventually add the ability to set the variables

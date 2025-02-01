@@ -31,18 +31,6 @@ class SessionManager:
         self.frame_num = 0
         self.status = {}
 
-    def signal_handler(self,sig,frame):
-        """
-        Handler to exit appropriately on SIGINT for edge
-        case where data stream never started so no
-        frames are being sent.
-        This lets the FileWriter know that it should end.
-        """
-        self.session_id = None
-        self.end_session_flag = False
-        self.frame_num = 0
-        return self.flowcontrol_frame(FlowControl.END)
-
     def flowcontrol_frame(self, fc):
         """
         Creates flow control frame.
@@ -84,10 +72,7 @@ class SessionManager:
         #######################################
         if frame.type == core.G3FrameType.none:
 
-            # Add sigint handler to close nicely on Ctrl+C
-            signal.signal(signal.SIGINT, self.signal_handler)
-
-            # In absence of wiring frames or registers from RFSoC, 
+            # In absence of wiring frames or registers from RFSoC,
             # trigger end of session on first None frame following data frames.
             if self.session_id is not None:
                 # Returns [previous, end]
@@ -113,7 +98,7 @@ class SessionManager:
         #######################################
         elif frame.type == core.G3FrameType.Scan:
 
-            # In absence of wiring frames or registers from RFSoC, 
+            # In absence of wiring frames or registers from RFSoC,
             # trigger new session on first data frame after None frames
             if self.session_id is None:
                 # Returns [start, session, status] - but no status/wiring yet! Just return data frame
