@@ -1,0 +1,33 @@
+g3_dir: /home/streamer/data/g3/ # path to top level detector file directory
+file_rotation_time: 10*60       # time before rotating files in seconds
+
+# Board and drone specific settings for all active RFSoCs
+rfsocs:
+  BOARD[1]:
+    board_name: rfsoc100
+    DRONE[1]:
+      drone_stream_ip: '192.168.3.54'
+      stream_id: rfsoc01_drone1
+    DRONE[2]:
+      drone_stream_ip: '192.168.3.55'
+      stream_id: rfsoc01_drone2
+    DRONE[3]:
+      drone_stream_ip: '192.168.3.56'
+      stream_id: rfsoc01_drone3
+    DRONE[4]:
+      drone_stream_ip: '192.168.3.57'
+      stream_id: rfsoc01_drone4
+  BOARD[2]:
+    board_name: rfsoc101
+    DRONE[1]:
+      drone_stream_ip: '192.168.3.58'
+      stream_id: rfsoc02_drone1
+    DRONE[2]:
+      drone_stream_ip: '192.168.3.59'
+      stream_id: rfsoc02_drone2
+    DRONE[3]:
+      drone_stream_ip: '192.168.3.60'
+      stream_id: rfsoc02_drone3
+    DRONE[4]:
+      drone_stream_ip: '192.168.3.61'
+      stream_id: rfsoc02_drone4
