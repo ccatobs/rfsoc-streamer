@@ -42,6 +42,11 @@ def main() -> None:
 
     # The Stream ID tells you which board and drone the data is coming from
     stream_id = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']['stream_id']
+    # Check that the format is rfsoc??_drone? for later parsing in filenames
+    # Probably a cleaner way to do this...
+    if len(stream_id) != 14 or stream_id[0:5] != 'rfsoc' or stream_id[7:13] != '_drone':
+        raise ValueError("stream_id improperly formatted. Should be like rfsoc##_drone#")
+
     source_ip = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']['drone_stream_ip']
 
     # Initializing the Python parts of the G3Pipeline

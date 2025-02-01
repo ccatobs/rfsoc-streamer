@@ -89,8 +89,10 @@ class G3Rotator:
         """
         session_id = frame['session_id']
         stream_id = frame['ccatstream_id']
+        board_num = stream_id[5:7]
+        drone_num = stream_id[-1]
         subdir = os.path.join(self.data_path, str(session_id)[:5], stream_id)
-        fname = f"{session_id}_{seq:03}.g3"
+        fname = f"r{board_num}d{drone_num}_{session_id}_{seq:03}.g3"
         fpath = os.path.join(subdir, fname)
 
         if not os.path.exists(subdir):

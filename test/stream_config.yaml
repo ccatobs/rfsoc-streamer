@@ -2,6 +2,7 @@ g3_dir: /home/streamer/data/g3/ # path to top level detector file directory
 file_rotation_time: 10*60       # time before rotating files in seconds
 
 # Board and drone specific settings for all active RFSoCs
+# stream IDs must have format rfsoc##_drone# - this is parsed to use in filenames
 rfsocs:
   BOARD[1]:
     board_name: rfsoc100
