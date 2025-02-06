@@ -2,14 +2,26 @@ FROM ubuntu:22.04
 
 # Installing needed packages
 RUN apt-get update && apt-get install -y gcc \
-    g++ make python3-dev libboost-all-dev \
-    python3.10-venv libopenblas-openmp-dev \
-    libflac-dev bzip2 libbz2-dev libgsl-dev
+    g++ make cmake git python3-dev python3-pip \
+    python3.10-venv libboost-all-dev \
+    libopenblas-openmp-dev libflac-dev \
+    bzip2 libbz2-dev libgsl-dev
 
+# Workaround for build issue with so3g needing specifically the 'python' executable
+RUN ln -s /usr/bin/python3.10 /usr/bin/python
+
+# Guaranteeing that there will be a common build directory for socs/spt3g
+WORKDIR /usr/local/so3g
 WORKDIR /usr/local/src
 
 ENV SO3G_DIR /usr/local/src/so3g
 ENV SPT3G_DIR /usr/local/src/spt3g_software
+ENV SPT3G_SOFTWARE_PATH /usr/local/src/spt3g_software
+ENV RFSOC_DIR /usr/local/src/rfsoc-streamer
+ENV LD_LIBRARY_PATH /usr/local/so3g/lib:/usr/local/so3g/so3g
+ENV STREAM_CONFIG_DIR /config
+ENV SPT3G_SOFTWARE_BUILD_PATH ${SPT3G_DIR}/build
+ENV SO3G_BUILD_PATH /usr/local/so3g/lib
 
 # Clone all repos
 RUN git clone https://github.com/CMB-S4/spt3g_software.git
@@ -18,7 +30,7 @@ RUN git clone https://github.com/ccatobs/rfsoc-streamer.git
 
 # Install spt3g
 WORKDIR /usr/local/src/spt3g_software/build
-# FIX PATHS!
+
 RUN cmake \
     -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_C_COMPILER="gcc" \
@@ -27,23 +39,27 @@ RUN cmake \
     -DCMAKE_CXX_FLAGS="-O3 -g -fPIC -std=c++11" \
     -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
     -DPython_EXECUTABLE:FILEPATH=$(which python3) \
-    -DPYTHON_MODULE_DIR="${HOME}/so3g/lib/python3.10/site-packages" \
-    -DCMAKE_INSTALL_PREFIX="${HOME}/so3g" \
-    .. 
+    -DCMAKE_INSTALL_PREFIX="/usr/local/so3g" \
+    ..
+
 RUN make
 RUN make install
 
 # Install so3g
+WORKDIR /usr/local/src/so3g
+RUN pip3 install -r requirements.txt
 WORKDIR /usr/local/src/so3g/build
-RUN pip install -r requirements.txt
-# FIX PATHS!
+
+# Seems to have a bug with finding cmake here...hash -r fixes it
+RUN hash -r 
 RUN cmake \
-    -DCMAKE_PREFIX_PATH=${HOME}/git/spt3g_software/build \
+    -DCMAKE_PREFIX_PATH='/usr/local/src/spt3g_software/build' \
     -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
-    -DPYTHON_INSTALL_DEST="${HOME}/so3g" \
-    -DCMAKE_INSTALL_PREFIX="${HOME}/so3g" \
+    -DPYTHON_INSTALL_DEST="/usr/local/so3g" \
+    -DCMAKE_INSTALL_PREFIX="/usr/local/so3g" \
     ..
+
 RUN make
 RUN make install
 
@@ -51,7 +67,12 @@ RUN make install
 WORKDIR /usr/local/src/rfsoc-streamer
 RUN CMAKE .
 RUN MAKE
-# Modify PYTHONPATH?
 
-WORKDIR /usr/local/src/rfsoc-streamer
-ENTRYPOINT ??
+export PYTHONPATH="${RFSOC_DIR}/lib:${RFSOC_DIR}/python:$SPT3G_SOFTWARE_BUILD_PATH:$SO3G_BUILD_PATH:$PYTHONPATH"
+export PATH="/usr/local/so3g/bin:${PATH}"
+
+RUN pip3 install dumb-init
+
+# The command to run stream.py will be in the docker-compose.yml file
+# for more granular user control
+ENTRYPOINT ["dumb-init", /bin/bash]
