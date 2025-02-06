@@ -10,23 +10,33 @@ RUN apt-get update && apt-get install -y gcc \
 # Workaround for build issue with so3g needing specifically the 'python' executable
 RUN ln -s /usr/bin/python3.10 /usr/bin/python
 
+# Create streamer user and group
+RUN groupadd -g 9003 streamer && \
+    useradd -m -l -u 9003 -g 9003 streamer
+
+# Setting up virtual environment
+RUN python3 -m venv /opt/venv/
+ENV PATH="/opt/venv/bin:$PATH"
+RUN python3 -m pip install -U pip
+
 # Guaranteeing that there will be a common build directory for socs/spt3g
 WORKDIR /usr/local/so3g
 WORKDIR /usr/local/src
 
-ENV SO3G_DIR /usr/local/src/so3g
-ENV SPT3G_DIR /usr/local/src/spt3g_software
-ENV SPT3G_SOFTWARE_PATH /usr/local/src/spt3g_software
-ENV RFSOC_DIR /usr/local/src/rfsoc-streamer
-ENV LD_LIBRARY_PATH /usr/local/so3g/lib:/usr/local/so3g/so3g
-ENV STREAM_CONFIG_DIR /config
-ENV SPT3G_SOFTWARE_BUILD_PATH ${SPT3G_DIR}/build
-ENV SO3G_BUILD_PATH /usr/local/so3g/lib
+ENV SO3G_DIR=/usr/local/src/so3g
+ENV SPT3G_DIR=/usr/local/src/spt3g_software
+ENV SPT3G_SOFTWARE_PATH=/usr/local/src/spt3g_software
+ENV RFSOC_DIR=/usr/local/src/rfsoc-streamer
+ENV LD_LIBRARY_PATH=/usr/local/so3g/lib:/usr/local/so3g/so3g
+ENV STREAM_CONFIG_DIR=/config
+ENV SPT3G_SOFTWARE_BUILD_PATH=${SPT3G_DIR}/build
+ENV SO3G_BUILD_PATH=/usr/local/so3g/lib
 
 # Clone all repos
 RUN git clone https://github.com/CMB-S4/spt3g_software.git
 RUN git clone https://github.com/simonsobs/so3g.git
-RUN git clone https://github.com/ccatobs/rfsoc-streamer.git
+#RUN git clone https://github.com/ccatobs/rfsoc-streamer.git
+COPY . /usr/local/src/rfsoc-streamer
 
 # Install spt3g
 WORKDIR /usr/local/src/spt3g_software/build
@@ -47,7 +57,7 @@ RUN make install
 
 # Install so3g
 WORKDIR /usr/local/src/so3g
-RUN pip3 install -r requirements.txt
+RUN pip install -r requirements.txt
 WORKDIR /usr/local/src/so3g/build
 
 # Seems to have a bug with finding cmake here...hash -r fixes it
@@ -65,13 +75,14 @@ RUN make install
 
 # Install rfsoc-streamer
 WORKDIR /usr/local/src/rfsoc-streamer
-RUN CMAKE .
-RUN MAKE
+RUN cmake .
+RUN make
 
-export PYTHONPATH="${RFSOC_DIR}/lib:${RFSOC_DIR}/python:$SPT3G_SOFTWARE_BUILD_PATH:$SO3G_BUILD_PATH:$PYTHONPATH"
-export PATH="/usr/local/so3g/bin:${PATH}"
+# There is no PYTHONPATH to start, so no need to append it to the end here
+ENV PYTHONPATH="${RFSOC_DIR}/lib:${RFSOC_DIR}/python:$SPT3G_SOFTWARE_BUILD_PATH:$SO3G_BUILD_PATH"
+ENV PATH="/usr/local/so3g/bin:${PATH}"
 
-RUN pip3 install dumb-init
+RUN pip install dumb-init
 
 # The command to run stream.py will be in the docker-compose.yml file
 # for more granular user control

@@ -58,7 +58,7 @@ include_directories(${SPT3G_DIR}/core/src)
 include_directories(${SO3G_DIR}/include)
 include_directories(/usr/include/python3.10)
 include_directories(${PROJECT_SOURCE_DIR}/include/)  # rfsoc-streamer/include
-include_directories(/usr/local/lib/python3.10/dist-packages/numpy/core/include/)
+include_directories(/opt/venv/lib/python3.10/site-packages/numpy/core/include)
 
 # Create rfsoc python library
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/RfsocBuilder.cxx ${PROJECT_SOURCE_DIR}/src/RfsocTransmitter.cxx ${PROJECT_SOURCE_DIR}/src/python.cpp)
