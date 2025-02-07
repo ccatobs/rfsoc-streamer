@@ -1,5 +1,5 @@
-g3_dir: /data/g3/ # path to top level detector file directory
-file_rotation_time: 60 #60*10  # time before rotating files in seconds
+g3_dir: /data/g3/ # path to top level detector file directory in Docker container
+file_rotation_time: 60*10  # time before rotating files in seconds
 
 # Board and drone specific settings for all active RFSoCs
 # stream IDs must have format rfsoc##_drone# - this is parsed to use in filenames

@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y gcc \
 # Workaround for build issue with so3g needing specifically the 'python' executable
 RUN ln -s /usr/bin/python3.10 /usr/bin/python
 
-# Create streamer user and group
-RUN groupadd -g 9003 streamer && \
-    useradd -m -l -u 9003 -g 9003 streamer
+# Make sure files belong to ocs user and group
+RUN groupadd -g 9000 ocs && \
+    useradd -m -l -u 9000 -g 9000 ocs
 
 # Setting up virtual environment
 RUN python3 -m venv /opt/venv/
