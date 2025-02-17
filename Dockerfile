@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # Installing needed packages
 RUN apt-get update && apt-get install -y gcc \
-    g++ make cmake git python3-dev python3-pip \
+    g++ make git python3-dev python3-pip \
     python3.10-venv libboost-all-dev \
     libopenblas-openmp-dev libflac-dev \
     bzip2 libbz2-dev libgsl-dev
@@ -18,6 +18,10 @@ RUN groupadd -g 9000 ocs && \
 RUN python3 -m venv /opt/venv/
 ENV PATH="/opt/venv/bin:$PATH"
 RUN python3 -m pip install -U pip
+# Installing cmake here instead of with apt-get
+# to avoid version issues later with so3g's 
+# requirements.txt file installing cmake with pip
+RUN python3 -m pip install cmake
 
 # Guaranteeing that there will be a common build directory for socs/spt3g
 WORKDIR /usr/local/so3g
@@ -52,7 +56,7 @@ RUN cmake \
     -DCMAKE_INSTALL_PREFIX="/usr/local/so3g" \
     ..
 
-RUN make
+RUN make -j ${nproc}
 RUN make install
 
 # Install so3g
@@ -60,8 +64,6 @@ WORKDIR /usr/local/src/so3g
 RUN pip install -r requirements.txt
 WORKDIR /usr/local/src/so3g/build
 
-# Seems to have a bug with finding cmake here...hash -r fixes it
-RUN hash -r 
 RUN cmake \
     -DCMAKE_PREFIX_PATH='/usr/local/src/spt3g_software/build' \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -70,7 +72,7 @@ RUN cmake \
     -DCMAKE_INSTALL_PREFIX="/usr/local/so3g" \
     ..
 
-RUN make
+RUN make -j ${nproc}
 RUN make install
 
 # Install rfsoc-streamer
