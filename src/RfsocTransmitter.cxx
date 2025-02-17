@@ -20,8 +20,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define RECEIVE_IP	"192.168.3.40"	// The receiving computer IP
-//#define CONNECT_IP  "192.168.3.58"  // The drone IP address from which to receive packets
+// The ports are currently hardcoded - the IP addresses differ for different drones
 #define RECEIVE_PORT	4096
 #define CONNECT_PORT    4096
 
@@ -47,7 +46,6 @@ void RfsocTransmitter::dataTransmit(RfsocPacketPtr rp){
     builder_->AsyncDatum(ts.time, rfsoc_sample);
 }
 
-// borrowing from Ben's code - just listening for anything on network that arrives at BROADCAST_IP
 int RfsocTransmitter::SetupUDPSocket()
 {
     struct sockaddr_in rx_addr;
@@ -119,7 +117,6 @@ int RfsocTransmitter::Stop()
     return (0);
 }
 
-//Adapted to use Ben's code, but could go back to DfMuxCollectors's recvfrom
 void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
 {
     ssize_t len;
