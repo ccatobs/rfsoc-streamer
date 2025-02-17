@@ -61,7 +61,7 @@ cmake \
   -DCMAKE_INSTALL_PREFIX="${HOME}/so3g" \
   ..
 
-make
+make -j 4
 make install
 #
 cd ~/git/so3g
@@ -76,7 +76,7 @@ cmake \
   -DCMAKE_INSTALL_PREFIX="${HOME}/so3g" \
   ..
 
-make
+make -j 4
 make install
 #
 ```
@@ -93,7 +93,7 @@ cd ~/git/rfsoc-streamer
 cmake .    # this will create multiple cmake-related files and a Makefile
 make       # or "VERBOSE=1 make" if you want more information printed out during make
 
-python test/stream.py
+python scripts/stream.py
 
 # run this for a little while, then terminate with Ctrl-C
 # this should produce one more g3 files under ~/data/g3, with timestamp information distinguishing files
@@ -101,7 +101,7 @@ python test/stream.py
 # if you want to either write to a different directory, 
 # or receive packets from a different IP address,
 # or change the file_dur (file duration before rotating),
-# modify the code in test/stream.py and re-run the python code
+# modify the code in scripts/stream.py and re-run the python code
 ```
 
 ### Pure C++ version
@@ -111,7 +111,7 @@ cd ~/git/rfsoc-streamer
 cd src
 make
 
-cd ../test
+cd ../scripts
 make
 
 ./stream_min_example
