@@ -56,7 +56,7 @@ RUN cmake \
     -DCMAKE_INSTALL_PREFIX="/usr/local/so3g" \
     ..
 
-RUN make -j ${nproc}
+RUN make -j 4
 RUN make install
 
 # Install so3g
@@ -72,7 +72,7 @@ RUN cmake \
     -DCMAKE_INSTALL_PREFIX="/usr/local/so3g" \
     ..
 
-RUN make -j ${nproc}
+RUN make -j 4
 RUN make install
 
 # Install rfsoc-streamer
