@@ -4,6 +4,7 @@ on:
   # Triggers the workflow on push or pull request events for specific branches
   push:
     branches: [ main ]
+    tags: "v*.*.*"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -45,11 +46,15 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{raw}}
+            type=edge
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
