@@ -83,7 +83,7 @@ services:
     volumes:
       - ${STREAM_CONFIG_DIR}:/config
       - <path_to_data_directory_on_host_computer>:/data
-    entrypoint: python3 -u /usr/local/src/rfsoc-streamer/test/stream.py
+    entrypoint: python3 -u /usr/local/src/rfsoc-streamer/scripts/stream.py
     environment:
       - BOARD=2
       - DRONE=1
