@@ -24,6 +24,8 @@ def main() -> None:
                         help='The board number for this streamer instance')
     parser.add_argument('--drone', type=int, default=None,
                          help='The drone number for this streamer instance')
+    parser.add_argument('--port', type=int, default=4536, help='Port to rebroadcast G3 frames to.')
+    parser.add_argument('--queue', type=int, default=5, help='Max queue size of rebroadcasted G3 frames.')
     args = parser.parse_args()
 
     if 'BOARD' in os.environ:
@@ -40,6 +42,15 @@ def main() -> None:
     else:
         raise ValueError("DRONE must be set in env or passed as the 'drone' arg")
 
+    if 'PORT' in os.environ:
+        stream_port = int(os.environ['PORT'])
+    else:
+        stream_port = args.port
+
+    if 'QUEUE' in os.environ:
+        max_queue = int(os.environ['QUEUE'])
+    else:
+        max_queue = args.queue
     # The Stream ID tells you which board and drone the data is coming from
     stream_id = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']['stream_id']
     # Check that the format is rfsoc??_drone? for later parsing in filenames
@@ -62,6 +73,7 @@ def main() -> None:
     pipe = core.G3Pipeline()
     pipe.Add(builder)
     pipe.Add(ccatrfsoc.SessionManager.SessionManager, stream_id=stream_id)
+    pipe.Add(core.G3NetworkSender, hostname='*', port=stream_port, max_queue_size=max_queue)
     pipe.Add(ccatrfsoc.G3Rotator, data_path=g3_dir, file_dur=file_length)
     pipe.Run(profile=False)
 

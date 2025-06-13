@@ -21,7 +21,7 @@ RUN python3 -m pip install -U pip
 # Installing cmake here instead of with apt-get
 # to avoid version issues later with so3g's 
 # requirements.txt file installing cmake with pip
-RUN python3 -m pip install cmake
+RUN python3 -m pip install cmake==3.31.4
 
 # Guaranteeing that there will be a common build directory for socs/spt3g
 WORKDIR /usr/local/so3g
@@ -39,11 +39,14 @@ ENV SO3G_BUILD_PATH=/usr/local/so3g/lib
 # Clone all repos
 RUN git clone https://github.com/CMB-S4/spt3g_software.git
 RUN git clone https://github.com/simonsobs/so3g.git
+
 #RUN git clone https://github.com/ccatobs/rfsoc-streamer.git
 COPY . /usr/local/src/rfsoc-streamer
 
 # Install spt3g
 WORKDIR /usr/local/src/spt3g_software/build
+RUN git checkout 22b94c00b35bf20ddfcaee4a077a89cf147afa93
+RUN test "$(git rev-parse HEAD)" = "22b94c00b35bf20ddfcaee4a077a89cf147afa93"
 
 RUN cmake \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -61,6 +64,10 @@ RUN make install
 
 # Install so3g
 WORKDIR /usr/local/src/so3g
+
+RUN git checkout 6eacab7864ce05f84ee88345e9fc7a8ea0d9d977
+RUN test "$(git rev-parse HEAD)" = "6eacab7864ce05f84ee88345e9fc7a8ea0d9d977"
+
 RUN pip install -r requirements.txt
 WORKDIR /usr/local/src/so3g/build
 

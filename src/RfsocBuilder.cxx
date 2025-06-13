@@ -169,7 +169,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     uint32_t start_packet_count = (*start)->GetPacketCount();
 
     int nsamps = stop - start;
-    int nchans = channel_count * 2; // each channel contains I,Q -- so multiply by 2
+    int nchans = channel_count * 2; // each channel contains I,Q -- so multiply by 2, plus 1 for packet_counts
     int nres = channel_count; // Total number of resonators for generating names
 
     // Initialize detector timestreams
@@ -186,19 +186,25 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
         data_ts->names.push_back(name);
     }
 
+    uint32_t ptp_ints[3];
+
     G3VectorTime sample_times = G3VectorTime(nsamps);
+    G3VectorInt packet_counts = G3VectorInt(nsamps);
 
     // Read data in to G3 Objects
     int sample = 0;
     uint32_t current_packet_count;
     for (auto it = start; it != stop; it++, sample++){
-        sample_times[sample] = (*it)->GetTime();
-
+        // sample_times[sample] = (*it)->GetTime();
+        (*it)->GetPtpIntArray(&ptp_ints[0]);
+        sample_times[sample] = RfsocBuilder::get_utc_from_ptp_int_array(ptp_ints);
+        
         for (int i = 0; i < nchans; i++){
             // Data should already by stored as int32 in data vector in the packet
             data_buffer[sample + i * nsamps] = (*it)->rp->data[i];
         }
         current_packet_count = (*it)->GetPacketCount();
+        packet_counts[sample] = current_packet_count;
     }
 
     PyGILState_STATE gstate;
@@ -227,7 +233,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     free(data_buffer);
 
     uint32_t last_packet_count = current_packet_count;
-    uint32_t ptp_ints[3];
+    // uint32_t ptp_ints[3];
     (*start)->GetPtpIntArray(&ptp_ints[0]);
 
     G3Time utc_from_ptp = RfsocBuilder::get_utc_from_ptp_int_array(ptp_ints);
@@ -243,6 +249,7 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     frame->Put("channel_count", std::make_shared<G3Int>(channel_count));
     frame->Put("num_samples", std::make_shared<G3Int>(nsamps));
     frame->Put("utc_from_ptp", std::make_shared<G3Time>(utc_from_ptp));
+    frame->Put("packet_counts", std::make_shared<G3VectorInt>(packet_counts));
     if (debug_){
         frame->Put("double_utc_from_ptp", std::make_shared<G3Double>(double_utc_from_ptp));
         frame->Put("start_packet_count", std::make_shared<G3Int>(start_packet_count));
