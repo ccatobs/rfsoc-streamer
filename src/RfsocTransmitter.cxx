@@ -14,7 +14,8 @@
 #include <algorithm>
 #include <iterator>
 #include <inttypes.h>
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 #include <bits/stdc++.h>
 #include <sys/socket.h>
@@ -24,7 +25,7 @@
 #define RECEIVE_PORT	4096
 #define CONNECT_PORT    4096
 
-namespace bp = boost::python;
+//namespace bp = boost::python;
 
 RfsocTransmitter::RfsocTransmitter(G3EventBuilderPtr builder, std::string source_ip) :
     builder_(builder), success_(false), stop_listening_(false)
@@ -128,6 +129,7 @@ void RfsocTransmitter::Listen(RfsocTransmitter *transmitter)
     }
 }
 
+/*
 void RfsocTransmitter::setup_python(){
     bp::class_< RfsocTransmitter,
                 std::shared_ptr<RfsocTransmitter>,
@@ -137,3 +139,4 @@ void RfsocTransmitter::setup_python(){
     .def("GetConnectIP", &RfsocTransmitter::GetConnectIP)
     ;
 }
+*/

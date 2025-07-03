@@ -20,7 +20,8 @@ project (RfsocStreamer)
 
 # C/C++
 enable_language(CXX)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wno-deprecated -O3")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wno-deprecated -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-deprecated -O3")
 
 #####################################
 # Link SPT3g Libraries
@@ -30,22 +31,22 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wno-deprecated -O3")
 # export SPT3G_SOFTWARE_PATH=${HOME}/git/spt3g_software/
 # export SO3G_DIR=${HOME}/git/so3g
 set(SPT3G_DIR $ENV{SPT3G_SOFTWARE_PATH})
-set(SO3G_DIR $ENV{SO3G_DIR})
+#set(SO3G_DIR $ENV{SO3G_DIR})
 link_directories(${SPT3G_DIR}/build/spt3g)
 
 #####################################
 # Find Support Libraries
 #####################################
 
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost COMPONENTS thread)
+#set(Boost_USE_MULTITHREADED ON)
+#find_package(Boost COMPONENTS thread)
 
 # #####################################
 # # Find python3
 # #####################################
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
-find_package(Boost REQUIRED COMPONENTS python3)
+#find_package(Boost REQUIRED COMPONENTS python3)
 
 #####################################
 # Setup build
@@ -55,10 +56,13 @@ find_package(Boost REQUIRED COMPONENTS python3)
 include_directories(${SPT3G_DIR}/core/include/core)
 include_directories(${SPT3G_DIR}/core/include)
 include_directories(${SPT3G_DIR}/core/src)
-include_directories(${SO3G_DIR}/include)
-include_directories(/usr/include/python3.10)
+#include_directories(${SO3G_DIR}/include)
+include_directories(/usr/include/python3.12)
+include_directories(/home/ubuntu/CCAT/streamer_test/lib/python3.12/site-packages/pybind11/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/)  # rfsoc-streamer/include
-include_directories(/opt/venv/lib/python3.10/site-packages/numpy/core/include)
+#include_directories(/opt/venv/lib/python3.10/site-packages/numpy/core/include)
+#include_directories(/home/ubuntu/CCAT/streamer_test/lib/python3.12/site-packages/numpy/core/include)
+include_directories(/home/ubuntu/CCAT/streamer_test/lib/python3.12/site-packages/numpy/_core/include)
 
 # Create rfsoc python library
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/RfsocBuilder.cxx ${PROJECT_SOURCE_DIR}/src/RfsocTransmitter.cxx ${PROJECT_SOURCE_DIR}/src/python.cpp)
@@ -72,5 +76,6 @@ set_target_properties(RfsocStreamer PROPERTIES OUTPUT_NAME "ccatrfsoccore")
 
 # Link to spt3g and so3g
 TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SPT3G_DIR}/build/lib/libspt3g-core.so)
-TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SO3G_DIR}/build/so3g/libso3g.so)
-TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC /usr/lib/x86_64-linux-gnu/libboost_filesystem.so)
+#TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC /home/ubuntu/CCAT/streamer_test/lib/python3.12/site-packages/spt3g.libs/libspt3g-core-6b9e7fb7.so)
+#TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SO3G_DIR}/build/so3g/libso3g.so)
+#TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC /usr/lib/x86_64-linux-gnu/libboost_filesystem.so)

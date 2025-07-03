@@ -20,16 +20,17 @@
 #include <G3Units.h>
 
 #include <pybindings.h>                //from spt3g
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 #include <container_pybindings.h>      //from spt3g
 
 #include <chrono>
 #include <string>
 #include <thread>
 #include <inttypes.h>
-#include <G3SuperTimestream.h>         //from so3g
+//#include <G3SuperTimestream.h>         //from so3g
 
-namespace bp = boost::python;
+//namespace bp = boost::python;
 
 RfsocBuilder::RfsocBuilder() :
     G3EventBuilder(MAX_DATASOURCE_QUEUE_SIZE),
@@ -168,15 +169,54 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     uint16_t channel_count = (*start)->GetChannelCount();
     uint32_t start_packet_count = (*start)->GetPacketCount();
 
-    int nsamps = stop - start;
+    //int nsamps = stop - start;
+    std::size_t nsamps = stop - start;
     int nchans = channel_count * 2; // each channel contains I,Q -- so multiply by 2
     int nres = channel_count; // Total number of resonators for generating names
 
     // Initialize detector timestreams
-    int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
+    //int32_t* data_buffer= (int32_t*) calloc(nchans * nsamps, sizeof(int32_t));
+    std::shared_ptr<int32_t[]> data_buffer(new int32_t[nchans * nsamps]);
 
     int data_shape[2] = {nchans, nsamps};
-    auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
+    //auto data_ts = G3SuperTimestreamPtr(new G3SuperTimestream());
+    //auto data_ts = G3TimestreamMapPtr(new G3TimestreamMap());
+    //auto names = G3VectorString();
+    std::vector<std::string> names;
+    char name[16];
+    for (int i = 0; i < nres; i++){
+        snprintf(name, sizeof(name), "r%04d_I", i);
+        names.push_back(name);
+        snprintf(name, sizeof(name), "r%04d_Q", i);
+        names.push_back(name);
+    }
+
+    G3VectorTime sample_times = G3VectorTime(nsamps);
+
+    // Read data in to G3 Objects
+    int sample = 0;
+    uint32_t current_packet_count;
+    for (auto it = start; it != stop; it++, sample++){
+        sample_times[sample] = (*it)->GetTime();
+
+        for (int i = 0; i < nchans; i++){
+            // Data should already by stored as int32 in data vector in the packet
+            data_buffer[sample + i * nsamps] = (*it)->rp->data[i];
+        }
+        current_packet_count = (*it)->GetPacketCount();
+    }
+
+
+    //auto data_ts = G3TimestreamMapPtr(new G3TimestreamMap(names, data_buffer));
+    //auto data_ts = G3TimestreamMapPtr(new G3TimestreamMap());
+    //data_ts->FromBuffer(names, nsamps, data_buffer, start, stop);
+    auto data_ts = G3TimestreamMap::MakeCompact<int32_t>(names, nsamps, data_buffer, sample_times[0], sample_times[nsamps-1]);
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+
+    /*
     data_ts->names = G3VectorString();
     char name[16];
     for (int i = 0; i < nres; i++){
@@ -209,6 +249,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     data_ts->SetDataFromBuffer((void*)data_buffer, 2, data_shape, NPY_INT32,
         std::pair<int,int>(0, nsamps));
 
+    */
+    /*
     if (enable_compression_){
         data_ts->Options(
             enable_compression_, flac_level_, bz2_work_factor_, data_encode_algo_,
@@ -222,9 +264,10 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     if (encode_timestreams_){
         data_ts->Encode();
     }
+    */
 
     PyGILState_Release(gstate);
-    free(data_buffer);
+    //free(data_buffer);
 
     uint32_t last_packet_count = current_packet_count;
     uint32_t ptp_ints[3];
@@ -250,7 +293,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     }
     frame->Put("packet_flag_1", std::make_shared<G3Int>(packet_flag_1));
     frame->Put("packet_flag_2", std::make_shared<G3Int>(packet_flag_2));
-    frame->Put("data", data_ts);
+    //frame->Put("data", data_ts);
+    frame->Put("data", std::make_shared<G3TimestreamMap>(data_ts));
 
     return frame;
 }
@@ -299,6 +343,7 @@ void RfsocBuilder::SetFlacLevel(int flac_level){
     flac_level_ = flac_level;
 }
 
+/*
 void RfsocBuilder::setup_python(){
 
     bp::class_< RfsocBuilder, bp::bases<G3EventBuilder>,
@@ -327,3 +372,4 @@ void RfsocBuilder::setup_python(){
     bp::implicitly_convertible<RfsocBuilderPtr, G3ModulePtr>();
 
 }
+*/
