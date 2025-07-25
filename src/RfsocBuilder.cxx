@@ -169,8 +169,8 @@ G3FramePtr RfsocBuilder::FrameFromSamples(
     uint16_t channel_count = (*start)->GetChannelCount();
     uint32_t start_packet_count = (*start)->GetPacketCount();
 
-    //int nsamps = stop - start;
-    std::size_t nsamps = stop - start;
+    int nsamps = stop - start;
+    //std::size_t nsamps = stop - start;
     int nchans = channel_count * 2; // each channel contains I,Q -- so multiply by 2
     int nres = channel_count; // Total number of resonators for generating names
 

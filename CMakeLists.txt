@@ -32,7 +32,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-deprecated -O3")
 # export SO3G_DIR=${HOME}/git/so3g
 set(SPT3G_DIR $ENV{SPT3G_SOFTWARE_PATH})
 #set(SO3G_DIR $ENV{SO3G_DIR})
-link_directories(${SPT3G_DIR}/build/spt3g)
+#link_directories(${SPT3G_DIR}/build/spt3g)
 
 #####################################
 # Find Support Libraries
@@ -74,7 +74,7 @@ set_target_properties(RfsocStreamer PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJEC
 set_target_properties(RfsocStreamer PROPERTIES PREFIX "")
 set_target_properties(RfsocStreamer PROPERTIES OUTPUT_NAME "ccatrfsoccore")
 
-# Link to spt3g and so3g
+# Link to spt3g
 TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SPT3G_DIR}/build/lib/libspt3g-core.so)
 #TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC /home/ubuntu/CCAT/streamer_test/lib/python3.12/site-packages/spt3g.libs/libspt3g-core-6b9e7fb7.so)
 #TARGET_LINK_LIBRARIES(RfsocStreamer LINK_PUBLIC ${SO3G_DIR}/build/so3g/libso3g.so)
