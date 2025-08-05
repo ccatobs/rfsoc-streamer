@@ -2,8 +2,6 @@
 #include <RfsocTransmitter.h>
 #include <Rfsoc_numpy.h>
 
-// namespace bp = boost::python;
-
 static void* _rfsoc_import_array() {
     import_array();
     return NULL;
@@ -12,8 +10,6 @@ static void* _rfsoc_import_array() {
 namespace py = pybind11;
 
 PYBIND11_MODULE(ccatrfsoccore, m) {
-    m.doc() = "pybind11 example module"; // Optional module docstring
-
     py::module_::import("spt3g.core");
 
     py::class_<RfsocTransmitter, std::shared_ptr<RfsocTransmitter>>(m, "RfsocTransmitter")
@@ -41,24 +37,3 @@ PYBIND11_MODULE(ccatrfsoccore, m) {
       .def("SetFlacLevel", &RfsocBuilder::SetFlacLevel)
       .def("GetDroppedFrames", &RfsocBuilder::GetDroppedFrames);
 }
-
-/*
-SPT3G_PYTHON_MODULE(ccatrfsoccore, scope){
-    py::module_::import("spt3g.core");
-}
-*/
-
-
-/*
-BOOST_PYTHON_MODULE(ccatrfsoccore){
-    bp::import("spt3g.core");
-
-    PyEval_InitThreads();
-    _sosmurf_import_array();
-
-    RfsocTransmitter::setup_python();
-    RfsocBuilder::setup_python();
-
-    printf("Loaded rfsoccore\n");
-}
-*/
