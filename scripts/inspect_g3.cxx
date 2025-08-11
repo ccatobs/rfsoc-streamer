@@ -1,14 +1,24 @@
-#define PY_ARRAY_UNIQUE_SYMBOL Py_Array_API_SO3G
+#define PY_ARRAY_UNIQUE_SYMBOL Py_Array_API_RFSOC
 
 #include <core/pybindings.h>
 #include <core/G3.h>
 #include <core/G3Pipeline.h>
 #include <core/G3Reader.h>
 #include <core/G3Writer.h>
-#include <so3g_numpy.h>
+#include <Rfsoc_numpy.h>
 #include <chrono>
 
+#include <pybind11/embed.h>
+#include <pybind11/numpy.h>
+
+namespace py = pybind11;
+
 /*
+ * Adapted from spt3g_software/examples/cppexample.cxx
+ * to include numpy interactions.
+ *
+ * cppexample.cxx:
+ *
  * Example of a small C++ program that is the equivalent of the
  * spt3g-dump command.
  *
@@ -34,11 +44,15 @@ main(int argc, const char **argv)
 	}
 
 	// Initialize the python interpreter, and release the GIL.
-	// Set the argument to true to instead hold the GIL.
 	// Comment this out to disable the interpreter.
-	G3PythonInterpreter interp(true);
+	py::scoped_interpreter interp{};
+        // py::gil_scoped_release gil;
+	// Comment this line to keep the GIL instead
+        // py::gil_scoped_acquire gil;
 
-        import_array1(0);
+        //import_array1(0);
+	//import_array();
+	PyArray_ImportNumPyAPI();
 
 	G3Pipeline pipe;
 

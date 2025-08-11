@@ -20,7 +20,7 @@ stream_min_example.o: stream_min_example.cxx
 	$(CC) -c -o $@ $(CFLAGS) $^
 
 stream_min_example: $(OBJS)
-	$(CC) -o stream_min_example $(OBJS) $(LFLAGS) $(LIBS) -Wl,-rpath-link=${HOME}/so3g/lib
+	$(CC) -o stream_min_example $(OBJS) $(LFLAGS) $(LIBS) # -Wl,-rpath-link=${HOME}/so3g/lib
 
 
 clean:
@@ -33,7 +33,7 @@ inspect_g3.o: inspect_g3.cxx
 	$(CC) -c -o $@ $(CFLAGS) $^
 
 inspect_g3: $(OBJS2)
-	$(CC) -o inspect_g3 $(OBJS2) $(LFLAGS) $(LIBS) -Wl,-rpath-link=${HOME}/so3g/lib
+	$(CC) -o inspect_g3 $(OBJS2) $(LFLAGS) $(LIBS) # -Wl,-rpath-link=${HOME}/so3g/lib
 
 
 EXE3 = cppexample

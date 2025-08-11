@@ -46,6 +46,9 @@ RUN git clone https://github.com/CMB-S4/spt3g_software.git
 
 # Install spt3g
 WORKDIR /usr/local/src/spt3g_software/build
+RUN git checkout e2b0ed8ae72f6a3f9b9e0127c19536e2213ff63d
+RUN test "$(git rev-parse HEAD)" = "e2b0ed8ae72f6a3f9b9e0127c19536e2213ff63d"
+
 #
 RUN cmake \
     -DCMAKE_BUILD_TYPE=Debug \
