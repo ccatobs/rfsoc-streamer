@@ -70,10 +70,15 @@ COPY . /usr/local/src/rfsoc-streamer
 WORKDIR /usr/local/src/rfsoc-streamer
 RUN cmake .
 RUN make
-COPY test/stream_config.yaml /config/stream_config.yaml
+COPY scripts/stream_config.yaml /config/stream_config.yaml
+
+WORKDIR /usr/local/src/rfsoc-streamer/scripts
+RUN make inspect_g3
+WORKDIR /usr/local/src/rfsoc-streamer
 
 # There is no PYTHONPATH to start, so no need to append it to the end here
 ENV PYTHONPATH="${RFSOC_DIR}/lib:${RFSOC_DIR}/python:$SPT3G_SOFTWARE_BUILD_PATH"
+ENV LD_LIBRARY_PATH="${SPT3G_SOFTWARE_BUILD_PATH}/lib"
 
 RUN python3 -m pip install dumb-init
 
