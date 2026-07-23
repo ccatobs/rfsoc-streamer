@@ -154,9 +154,11 @@ G3Time RfsocBuilder::get_utc_from_ptp_int_array(uint32_t ptp_ints[3], int offset
     //Python code: return int((d[-3] << 18) | (d[-2] >> 14)) + int((((d[-2] & 0x00003FFF) << 16) | (d[-1] >> 16))) * 1e-9 + offset;
     int64_t seconds = int((d0 << 18) | (d1 >> 14)) + offset;
     int64_t nanoseconds =  int((((d1 & 0x00003FFF) << 16) | (d2 >> 16)));
-    int64_t microseconds = int(nanoseconds/1000);
+    int64_t ten_nanoseconds = int(nanoseconds/10);
+    // int64_t microseconds = int(nanoseconds/1000);
     //return G3Time(seconds*G3TimeStamp(G3Units::s) + nanoseconds*G3TimeStamp(G3Units::ns));  // ns not processed correctly in G3TimeStamp
-    return G3Time(seconds*G3TimeStamp(G3Units::s) + microseconds*G3TimeStamp(G3Units::us));
+    // return G3Time(seconds*G3TimeStamp(G3Units::s) + microseconds*G3TimeStamp(G3Units::us));
+    return G3Time(seconds*G3TimeStamp(G3Units::s) + ten_nanoseconds);
 }
 
 

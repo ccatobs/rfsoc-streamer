@@ -24,8 +24,6 @@ def main() -> None:
                         help='The board number for this streamer instance')
     parser.add_argument('--drone', type=int, default=None,
                          help='The drone number for this streamer instance')
-    parser.add_argument('--port', type=int, default=4536, help='Port to rebroadcast G3 frames to.')
-    parser.add_argument('--queue', type=int, default=5, help='Max queue size of rebroadcasted G3 frames.')
     args = parser.parse_args()
 
     if 'BOARD' in os.environ:
@@ -42,26 +40,22 @@ def main() -> None:
     else:
         raise ValueError("DRONE must be set in env or passed as the 'drone' arg")
 
-    if 'PORT' in os.environ:
-        stream_port = int(os.environ['PORT'])
-    else:
-        stream_port = args.port
-
-    if 'QUEUE' in os.environ:
-        max_queue = int(os.environ['QUEUE'])
-    else:
-        max_queue = args.queue
     # The Stream ID tells you which board and drone the data is coming from
-    stream_id = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']['stream_id']
+    drone_cfg = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']
+    stream_id = drone_cfg['stream_id']
     # Check that the format is rfsoc??_drone? for later parsing in filenames
     # Probably a cleaner way to do this...
     if len(stream_id) != 14 or stream_id[0:5] != 'rfsoc' or stream_id[7:13] != '_drone':
         raise ValueError("stream_id improperly formatted. Should be like rfsoc##_drone#")
 
-    source_ip = cfg['rfsocs'][f'BOARD[{board_num}]'][f'DRONE[{drone_num}]']['drone_stream_ip']
+    source_ip = drone_cfg['drone_stream_ip']
+    stream_port = drone_cfg['output_port']
+    max_queue = drone_cfg['queue_size']
 
     print(f"Stream id: {stream_id}")
     print(f"Streaming IP address: {source_ip}")
+    print(f"Rebroadcast port: {stream_port}")
+    print(f"Max queue size: {max_queue}")
 
     # Initializing the Python parts of the G3Pipeline
     # Should eventually add the ability to set the variables
